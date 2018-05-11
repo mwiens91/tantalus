@@ -799,13 +799,22 @@ class GenericTaskType(models.Model):
     structure.
     """
     # The name of the generic task type
-    task_name = models.CharField(max_length=50)
+    task_name = models.CharField(max_length=50,
+                                 help_text="The name of the task.")
 
     # The name of the script used by this generic task type. This needs
     # to be "task_script_name", where the script associated with this
     # task is found at, starting from the root of the repository,
     # tantalus/tantalus/backend/task_scripts/{task_script_name}.py
-    task_script_name = models.CharField(max_length=50)
+    task_script_name = models.CharField(
+                          max_length=50,
+                          help_text=("The name of the task script name,"
+                                     " where the name you enter here refers"
+                                     " to 'script_name' in the path to the"
+                                     " script "
+                                     "tantalus/tantalus/backend/task_scripts/"
+                                     "{task_script_name}.py, relative to the"
+                                     " root of the Tantalus respository."))
 
     # What arguments the above script requires. Probably the easiest way
     # to use this field is to pass in a dictionary, and let's use that
@@ -829,7 +838,16 @@ class GenericTaskType(models.Model):
     #
     # {'arg1': None, 'arg2': 'default_val', 'arg3': None}
     required_and_default_args = django.contrib.postgres.fields.JSONField(
-                                                                default=dict)
+                                 verbose_name="script arguments",
+                                 default={'arg1': None, 'arg2': 'default2'},
+                                 help_text=(
+                                    "The arguments that the task requires as"
+                                    " a JSON object. Looking at the object as"
+                                    " a dictionary, the keys are the argument"
+                                    " names and the corresponding values are"
+                                    " the default values for these arguments."
+                                    " To specify no default argument, simply"
+                                    " use 'null' as the value."))
 
 
 class GenericTaskInstance(models.Model):
@@ -851,12 +869,9 @@ class GenericTaskInstance(models.Model):
     stopping = models.BooleanField(default=False)
     state = models.TextField(blank=True)
 
-    # NOTE what the hell are these two methods for?
+    # NOTE what the hell is this method for?
     def get_queue_name(self):
         raise NotImplementedError()
-
-    def get_absolute_url(self):
-        return reverse(self.view)
 
 
 class ScaryException(Exception):
