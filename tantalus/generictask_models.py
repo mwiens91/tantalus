@@ -138,7 +138,7 @@ def validate_generic_task_instance_args(instance, **_):
 
     # Confirm that the instance arguments is a subset of the task type
     # arguments
-    if not set(task_type_args_dict).issubset(set(task_instance_args_dict)):
+    if not set(task_instance_args_dict).issubset(set(task_type_args_dict)):
         # The task instance has unrecognized arguments
         raise ValidationError('Instance arguments are not a subset of the'
                               ' task type arguments!')
