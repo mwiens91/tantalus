@@ -19,12 +19,17 @@ from django.contrib import admin
 from django.views.generic import TemplateView
 from django.views.generic.base import RedirectView
 import tantalus.views
+import tantalus.views_generictasks
 import account.views
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
     url(r'^api/', include('tantalus.api.urls')),
     url(r'^account/', include('account.urls')),
+    url(r'^generictasktypes/$', tantalus.views_generictasks.GenericTaskTypeListView.as_view(), name='generictasktype-list'),
+    url(r'^generictasktypes/create$', tantalus.views_generictasks.GenericTaskTypeCreateView.as_view(), name='generictasktype-create'),
+    url(r'^generictasktypes/(?P<pk>\d+)$', tantalus.views_generictasks.GenericTaskTypeDetailView.as_view(), name='generictasktype-detail'),
+    url(r'^generictasktypes/delete/(?P<pk>\d+)$', tantalus.views_generictasks.GenericTaskTypeDeleteView.as_view(), name='generictasktype-delete'),
     url(r'^filetransfers/$', tantalus.views.FileTransferListView.as_view(), name='filetransfer-list'),
     url(r'^filetransfers/create$', tantalus.views.FileTransferCreateView.as_view(), name='filetransfer-create'),
     url(r'^filetransfers/(?P<pk>\d+)$', tantalus.views.FileTransferDetailView.as_view(), name='filetransfer-detail'),

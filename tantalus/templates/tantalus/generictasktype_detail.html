@@ -1,0 +1,56 @@
+{% extends "tantalus/base_view.html" %}
+{% load staticfiles %}
+
+{% block title %}
+    Generic Task Type Detail
+{% endblock %}
+
+{% block body %}
+    <div class="container" style="padding:0; margin-bottom:5px;">
+    </div>
+    <div class="container" style="background-color:#F5F5F5;">
+        <table class="table-condensed">
+            <tr>
+                <td class="td_name">Task name: </td>
+                <td>
+                    {{ object.task_name }}
+                </td>
+            </tr>
+            <tr>
+                <td class="td_name">Task script name: </td>
+                <td>
+                    {{ object.task_script_name }}
+                </td>
+            </tr>
+            <tr>
+                <td class="td_name">Task script location: </td>
+                <td>
+                    tantalus/tantalus/backend/task_scripts/{{ object.task_script_name }}.py
+                </td>
+            </tr>
+            <tr>
+                <td class="td_name">Arguments: </td>
+                <td>
+                    {# List all the arguments in a table #}
+                    <table style="width: 100%">
+                        <tbody>
+                            <tr>
+                                <th>Argument</th>
+                                <th>Default value</th>
+                            </tr>
+
+                            {% for key, value in object.required_and_default_args.items %}
+                                <tr>
+                                    <td>{{ key }}</td>
+                                    <td>{{ value }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+
+{% endblock %}
