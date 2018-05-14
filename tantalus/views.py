@@ -15,7 +15,8 @@ from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
 import os
 
-from tantalus.models import FileTransfer, FileResource, Sample, AbstractDataSet, Storage, GscWgsBamQuery, GscDlpPairedFastqQuery, BRCFastqImport, Tag, GenericTaskType
+from tantalus.models import FileTransfer, FileResource, Sample, AbstractDataSet, Storage, GscWgsBamQuery, GscDlpPairedFastqQuery, BRCFastqImport, Tag
+from tantalus.generictask_models import GenericTaskType
 from tantalus.utils import read_excel_sheets
 from tantalus.settings import STATIC_ROOT
 from misc.helpers import Render

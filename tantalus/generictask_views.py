@@ -8,8 +8,8 @@ from django.views import View
 from django.views.generic import DetailView
 from django.views.generic.base import TemplateView
 from django.shortcuts import get_object_or_404, render
-from tantalus.forms import GenericTaskTypeCreateForm
-from tantalus.models import GenericTaskType
+from tantalus.generictask_forms import GenericTaskTypeCreateForm
+from tantalus.generictask_models import GenericTaskType
 
 
 class GenericTaskTypeListView(TemplateView):

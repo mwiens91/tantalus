@@ -1,6 +1,7 @@
 from django.contrib import admin
 
 from tantalus.models import *
+from tantalus.generictask_models import *
 
 
 admin.site.register(AzureBlobCredentials)

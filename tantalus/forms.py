@@ -393,20 +393,3 @@ class BRCFastqImportCreateForm(SimpleTaskCreateForm):
     class Meta:
         model = BRCFastqImport
         fields = ('output_dir', 'storage', 'flowcell_id')
-
-
-class GenericTaskTypeCreateForm(forms.ModelForm):
-    """A form to create a GenericTask."""
-    class Meta:
-        model = GenericTaskType
-        fields = ('task_name',
-                  'task_script_name',
-                  'required_and_default_args',)
-
-
-class GenericTaskInstanceCreateForm(forms.ModelForm):
-    """A form to create a GenericTask."""
-    class Meta:
-        model = GenericTaskInstance
-        fields = ('task_type',
-                  'args',)

@@ -22,6 +22,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='generictasktype',
             name='required_and_default_args',
-            field=django.contrib.postgres.fields.jsonb.JSONField(blank=True, default=tantalus.models.return_gen_task_type_arg_default, help_text="The arguments that the task requires as a JSON object. Looking at the object as a dictionary, the keys are the argument names and the corresponding values are the default values for these arguments. To specify no default argument, simply use 'null' as the value.", null=True, verbose_name='script arguments'),
+            field=django.contrib.postgres.fields.jsonb.JSONField(blank=True, default=tantalus.generictask_models.return_gen_task_type_arg_default, help_text="The arguments that the task requires as a JSON object. Looking at the object as a dictionary, the keys are the argument names and the corresponding values are the default values for these arguments. To specify no default argument, simply use 'null' as the value.", null=True, verbose_name='script arguments'),
         ),
     ]
