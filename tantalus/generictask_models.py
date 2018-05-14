@@ -27,6 +27,7 @@ class GenericTaskType(models.Model):
     """
     # The name of the generic task type
     task_name = models.CharField(max_length=50,
+                                 unique=True,
                                  help_text="The name of the task.")
 
     # The name of the script used by this generic task type. This needs
