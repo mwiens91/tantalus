@@ -85,6 +85,11 @@ class GenericTaskInstance(models.Model):
     # The type of task that this is
     task_type = models.ForeignKey(GenericTaskType)
 
+    # A name for the task instance
+    instance_name = models.CharField(max_length=50,
+                                     unique=True,
+                                     help_text="The name for the instance.")
+
     # What arguments the script for this task should be called with.
     # These will be validated in the function
     # validate_generic_task_instance_args right after instantiating an
