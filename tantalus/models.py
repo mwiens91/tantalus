@@ -790,6 +790,16 @@ class ImportDlpBam(SimpleTask):
             return get_object_or_404(ServerStorage, name='shahlab').get_db_queue_name()
 
 
+def return_gen_task_type_arg_default():
+    """Essentially a lambda function that returns a dict.
+
+    For technical reasons, we can't use a lambda function in the default
+    to the JSON field for GenericTaskType above; but defining a function
+    in the module scope works.
+    """
+    return {'arg1': None, 'arg2': 'default2'}
+
+
 class GenericTaskType(models.Model):
     """A type of generic task you can perform.
 
@@ -839,7 +849,7 @@ class GenericTaskType(models.Model):
     # {'arg1': None, 'arg2': 'default_val', 'arg3': None}
     required_and_default_args = django.contrib.postgres.fields.JSONField(
                                  verbose_name="script arguments",
-                                 default={'arg1': None, 'arg2': 'default2'},
+                                 default=return_gen_task_type_arg_default,
                                  help_text=(
                                     "The arguments that the task requires as"
                                     " a JSON object. Looking at the object as"
@@ -847,7 +857,9 @@ class GenericTaskType(models.Model):
                                     " names and the corresponding values are"
                                     " the default values for these arguments."
                                     " To specify no default argument, simply"
-                                    " use 'null' as the value."))
+                                    " use 'null' as the value."),
+                                 null=True,
+                                 blank=True,)
 
 
 class GenericTaskInstance(models.Model):
@@ -859,7 +871,9 @@ class GenericTaskInstance(models.Model):
     # These will be validated in the function
     # validate_generic_task_instance_args right after instantiating an
     # instance of the task.
-    args = django.contrib.postgres.fields.JSONField(default=dict)
+    args = django.contrib.postgres.fields.JSONField(default=dict,
+                                                    null=True,
+                                                    blank=True,)
 
     # Job state parameters. These variables conform to the SimpleTask
     # state representation structure.
