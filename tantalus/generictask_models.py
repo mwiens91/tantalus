@@ -79,6 +79,10 @@ class GenericTaskType(models.Model):
                                  null=True,
                                  blank=True,)
 
+    def __str__(self):
+        """String representation of the task type."""
+        return "%s" % self.task_name
+
 
 class GenericTaskInstance(models.Model):
     """An instance of a generic task type."""
@@ -105,6 +109,11 @@ class GenericTaskInstance(models.Model):
     success = models.BooleanField(default=False)
     stopping = models.BooleanField(default=False)
     state = models.TextField(blank=True)
+
+    def __str__(self):
+        """String representation of the task instance."""
+        return "%s (type: %s)" % (self.instance_name,
+                                  self.task_type.task_name)
 
 
 class ScaryException(Exception):
