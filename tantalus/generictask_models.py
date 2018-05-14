@@ -106,10 +106,6 @@ class GenericTaskInstance(models.Model):
     stopping = models.BooleanField(default=False)
     state = models.TextField(blank=True)
 
-    # NOTE what the hell is this method for?
-    def get_queue_name(self):
-        raise NotImplementedError()
-
 
 class ScaryException(Exception):
     pass
