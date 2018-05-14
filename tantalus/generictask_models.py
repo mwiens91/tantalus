@@ -145,7 +145,7 @@ def validate_generic_task_instance_args(instance, **_):
 
     # Now go through each argument from the type and make sure the
     # instance has a value
-    for arg, value in task_type_args_dict:
+    for arg, value in task_type_args_dict.iteritems():
         if arg not in task_instance_args_dict.keys():
             # Argument is missing from instance. If the task type has a
             # default value use that; otherwise, raise an exception.
