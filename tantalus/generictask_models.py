@@ -2,6 +2,7 @@
 
 import json
 import django.contrib.postgres.fields
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models.signals import pre_save
 from django.dispatch import receiver
@@ -116,10 +117,6 @@ class GenericTaskInstance(models.Model):
                                   self.task_type.task_name)
 
 
-class ScaryException(Exception):
-    pass
-
-
 @receiver(pre_save, sender=GenericTaskInstance)
 def validate_generic_task_instance_args(instance, **_):
     """Validate a GenericTaskInstance against its task types.
@@ -135,8 +132,7 @@ def validate_generic_task_instance_args(instance, **_):
     Arg:
         instance: The GenericTaskInstance just about to be saved.
     Raises:
-        A terrible exception (TODO determine this exception type) if the
-        instance fails to validate.
+        A ValidationError exception if the instance fails to validate.
     """
     # Un-JSONize the task and instance arguments
     task_type_args_dict = json.loads(
@@ -147,7 +143,8 @@ def validate_generic_task_instance_args(instance, **_):
     # arguments
     if not set(task_type_args_dict).issubset(set(task_instance_args_dict)):
         # The task instance has unrecognized arguments
-        raise ScaryException
+        raise ValidationError('Instance arguments are not a subset of the'
+                              ' task type arguments!')
 
     # Now go through each argument from the type and make sure the
     # instance has a value
@@ -160,7 +157,8 @@ def validate_generic_task_instance_args(instance, **_):
                 task_instance_args_dict[arg] = value
             else:
                 # Instance is missing required argument
-                raise ScaryException
+                raise ValidationError('Instance is missing a value for'
+                                      'the "%s" argument' % arg)
 
     # Store any tacked on arguments to the instance
     instance.args = json.dumps(task_instance_args_dict)
