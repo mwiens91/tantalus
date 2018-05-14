@@ -1,6 +1,5 @@
 """GenericTask models and related functions."""
 
-import json
 import django.contrib.postgres.fields
 from django.core.exceptions import ValidationError
 from django.db import models
@@ -134,10 +133,8 @@ def validate_generic_task_instance_args(instance, **_):
     Raises:
         A ValidationError exception if the instance fails to validate.
     """
-    # Un-JSONize the task and instance arguments
-    task_type_args_dict = json.loads(
-                            instance.task_types.required_and_default_args)
-    task_instance_args_dict = json.loads(instance.args)
+    task_type_args_dict = instance.task_type.required_and_default_args
+    task_instance_args_dict = instance.args
 
     # Confirm that the instance arguments is a subset of the task type
     # arguments
@@ -161,4 +158,4 @@ def validate_generic_task_instance_args(instance, **_):
                                       'the "%s" argument' % arg)
 
     # Store any tacked on arguments to the instance
-    instance.args = json.dumps(task_instance_args_dict)
+    instance.args = task_instance_args_dict
