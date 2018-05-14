@@ -155,7 +155,7 @@ def validate_generic_task_instance_args(instance, **_):
             else:
                 # Instance is missing required argument
                 raise ValidationError('Instance is missing a value for'
-                                      'the "%s" argument' % arg)
+                                      ' the "%s" argument' % arg)
 
     # Store any tacked on arguments to the instance
     instance.args = task_instance_args_dict
