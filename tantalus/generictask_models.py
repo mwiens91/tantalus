@@ -75,8 +75,9 @@ class GenericTaskType(models.Model):
                                     " a dictionary, the keys are the argument"
                                     " names and the corresponding values are"
                                     " the default values for these arguments."
-                                    " To specify no default argument, simply"
-                                    " use 'null' as the value."),
+                                    " To specify an argument with no default"
+                                    " value, simply use 'null' (without the"
+                                    " quotes) as its value."),
                                  null=True,
                                  blank=True,)
 
