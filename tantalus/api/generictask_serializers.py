@@ -10,4 +10,5 @@ class GenericTaskTypeSerializer(serializers.ModelSerializer):
         model = GenericTaskType
         fields = ('task_name',
                   'task_script_name',
+                  'default_host',
                   'required_and_default_args',)

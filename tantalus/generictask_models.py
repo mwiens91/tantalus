@@ -5,6 +5,7 @@ from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models.signals import pre_save
 from django.dispatch import receiver
+from tantalus.models import ServerStorage
 
 
 def return_gen_task_type_arg_default():
@@ -79,6 +80,14 @@ class GenericTaskType(models.Model):
                                  null=True,
                                  blank=True,)
 
+    # The default host an instance of this task will run on unless
+    # otherwise specified
+    default_host = models.ForeignKey(ServerStorage,
+                                     help_text=(
+                                         "The default host an instance of"
+                                         " this task will run on (unless"
+                                         " otherwise specified)"),)
+
     def __str__(self):
         """String representation of the task type."""
         return "%s" % self.task_name
@@ -88,6 +97,10 @@ class GenericTaskInstance(models.Model):
     """An instance of a generic task type."""
     # The type of task that this is
     task_type = models.ForeignKey(GenericTaskType)
+
+    # What host the task is to be run on
+    # TODO uncomment this
+    #host = models.ForeignKey(ServerStorage)
 
     # A name for the task instance
     instance_name = models.CharField(max_length=50,
@@ -109,6 +122,14 @@ class GenericTaskInstance(models.Model):
     success = models.BooleanField(default=False)
     stopping = models.BooleanField(default=False)
     state = models.TextField(blank=True)
+
+    def get_queue_name(self):
+        """Return the queue name."""
+        pass
+
+    def get_default_host(self):
+        """Returns the default host for this task type."""
+        pass
 
     def __str__(self):
         """String representation of the task instance."""
