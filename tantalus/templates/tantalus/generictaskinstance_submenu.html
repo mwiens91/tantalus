@@ -1,0 +1,42 @@
+{% extends "tantalus/base_view.html" %}
+{% load staticfiles %}
+
+{% block title %}
+    Generic Task Instances
+{% endblock %}
+
+{% block body %}
+    <div class="container" style="padding:0; margin-bottom:5px;">
+        <h4 style="float:left;">Select a generic task type to view its corresponding instances</h4>
+    </div>
+
+    <div class="container" style="background-color:#F5F5F5;">
+        {% if tasktypes %}
+            <div class="table-responsive">
+                <table id="datatable" class="table table-striped" style="display:none;">
+                    <thead>
+                        <tr>
+                            <th>Task type</th>
+                            <th>Number of instances</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <br/>
+                        {% for tasktype in tasktypes %}
+                            <tr>
+                                <td><a href="{% url 'generictaskinstance-list' tasktype.pk %}">{{ tasktype.task_name }}</a></td>
+                                <td>{{ tasktype.generictaskinstance_set.count }}</td>
+                                <td>
+                                    <a href="{% url 'generictaskinstance-create' tasktype.pk %}"><i class="fa fa-plus" aria-hidden="true" style="color:green;"></i> add</a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <h5><i class="text-warning">No generic task instances.</i></h5>
+        {% endif %}
+    </div>
+{% endblock %}
