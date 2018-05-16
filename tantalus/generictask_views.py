@@ -192,7 +192,7 @@ class GenericTaskInstanceDetailView(TemplateView):
 
 
 class GenericTaskInstanceDeleteView(LoginRequiredMixin, View):
-    """A view to create GenericTaskTypes."""
+    """A view to delete GenericTaskInstances."""
     def get(self, request, task_type_pk, instance_pk):
         # Delete the instance
         get_object_or_404(GenericTaskInstance, pk=instance_pk).delete()
