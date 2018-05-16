@@ -1,6 +1,7 @@
 """Forms relating to the GenericTask models."""
 
 from django import forms
+from django.utils.safestring import mark_safe
 from tantalus.generictask_models import GenericTaskType, GenericTaskInstance
 
 
@@ -38,7 +39,8 @@ class GenericTaskInstanceCreateForm(forms.Form):
             # Create the 'required' setting and appropriate help text
             if task_arg[1]:
                 # There's a default
-                help_text = 'Defaults to %s if left blank' % task_arg[1]
+                help_text = mark_safe(
+                    'Defaults to <code>%s</code> if left blank' % task_arg[1])
                 required_setting = False
             else:
                 help_text = 'This is a required argument'
