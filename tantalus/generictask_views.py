@@ -38,7 +38,8 @@ class GenericTaskTypeCreateView(LoginRequiredMixin, TemplateView):
             instance = form.save()
 
             # Log a message
-            msg = "Successfully created generic task type %s." % instance.task_name
+            msg = ("Successfully created generic task type %s."
+                                                % instance.task_name)
             messages.success(request, msg)
 
             return HttpResponseRedirect(reverse('generictasktype-list'))
@@ -214,7 +215,8 @@ class GenericTaskInstanceRestartView(LoginRequiredMixin, View):
         # Start the task
         if not instance.running:
             # Change the state
-            instance.state = instance.task_nametask_name.replace('_', ' ') + ' queued'
+            instance.state = (instance.task_nametask_name.replace('_', ' ')
+                              + ' queued')
             instance.save()
 
             # Restart the job
