@@ -142,6 +142,13 @@ class GenericTaskInstance(models.Model):
         """
         return self.host.get_db_queue_name()
 
+    def start_task(self):
+        """Starts the task associated with a GenericTaskInstance."""
+        # Start the job
+        start_generic_task_instance.apply_async(
+                args=(self,),
+                queue=self.get_queue_name())
+
     def __str__(self):
         """String representation of the task instance."""
         return "%s (type: %s)" % (self.instance_name,
@@ -194,7 +201,7 @@ def validate_generic_task_instance_args(instance, **_):
 
 
 @receiver(post_save, sender=GenericTaskInstance)
-def start_generic_task(instance, created, **_):
+def start_generic_task_on_create(instance, created, **_):
     """Starts the task associated with a GenericTaskInstance.
 
     This is called when a generic task is first saved (right after
@@ -203,6 +210,4 @@ def start_generic_task(instance, created, **_):
     # Only trigger if the instance was just created
     if created:
         # Start the job
-        start_generic_task_instance.apply_async(
-                args=(instance,),
-                queue=instance.get_queue_name())
+        instance.start_task()
