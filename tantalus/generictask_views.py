@@ -2,6 +2,7 @@
 
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.core.paginator import Paginator
 from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect
 from django.views import View
@@ -11,6 +12,7 @@ from django.shortcuts import get_object_or_404, render
 from tantalus.generictask_forms import (GenericTaskTypeCreateForm,
                                         GenericTaskInstanceCreateForm,)
 from tantalus.generictask_models import GenericTaskType, GenericTaskInstance
+from tantalus.tasks import get_log_path_for_generic_task_instance
 
 
 class GenericTaskTypeListView(TemplateView):
@@ -69,6 +71,50 @@ class GenericTaskTypeDeleteView(LoginRequiredMixin, View):
         messages.success(request, msg)
 
         return HttpResponseRedirect(reverse('generictasktype-list'))
+
+
+def get_generic_task_instance_log(instance,
+                                  logfile,
+                                  raw=False,
+                                  preview_size=1000):
+    """Get log text for a generic task instance.
+
+    The logfile parameter will likely either be 'stdout' or 'stderr'
+    (although it can be anything, provided that a log file with the name
+    `logfile` exists). 'raw' is a flag that when true outputs the log as
+    one string; otherwise, the output is a list of strings. Preview size
+    specifies how many lines to display when not using raw.
+    """
+    # Get the path for the log file
+    log_path = get_log_path_for_generic_task_instance(instance, logfile)
+
+    # Open the log file
+    with open(log_path, 'r') as log_file:
+        if not raw:
+            # Build up a list of line strings
+            log_lines = []
+
+            for line in log_file:
+                log_lines.append(line)
+
+                if len(log_lines) >= preview_size:
+                    # Only return preview_size many lines
+                    break
+
+                # Return the list of lines
+                return log_lines
+        else:
+            # Return the log as a single string
+            return log_file.read()
+
+
+def paginate_generic_task_instance_log(instance,
+                                       logfile,
+                                       page_num=1,
+                                       items_per_page=100):
+    """Returns a page of stdout or stderr output."""
+    return Paginator(get_generic_task_instance_log(instance, logfile),
+                     items_per_page).page(page_num)
 
 
 class GenericTaskInstanceSubMenuView(TemplateView):
