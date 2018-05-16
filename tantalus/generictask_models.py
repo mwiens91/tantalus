@@ -100,8 +100,8 @@ class GenericTaskInstance(models.Model):
     task_type = models.ForeignKey(GenericTaskType)
 
     # What host the task is to be run on
-    # TODO uncomment this
-    #host = models.ForeignKey(ServerStorage)
+    host = models.ForeignKey(ServerStorage,
+                             help_text="The host on which the task will run.")
 
     # A name for the task instance
     instance_name = models.CharField(max_length=50,
@@ -125,12 +125,13 @@ class GenericTaskInstance(models.Model):
     state = models.TextField(blank=True)
 
     def get_queue_name(self):
-        """Return the queue name."""
-        pass
+        """Return the queue name.
 
-    def get_default_host(self):
-        """Returns the default host for this task type."""
-        pass
+        Only using 'db queues' for the forseeable future. The
+        distinction between these types of queues and other is allegedly
+        the number of workers assigned to the task.
+        """
+        return self.host.get_db_queue_name()
 
     def __str__(self):
         """String representation of the task instance."""

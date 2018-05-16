@@ -3,6 +3,7 @@
 from django import forms
 from django.utils.safestring import mark_safe
 from tantalus.generictask_models import GenericTaskType, GenericTaskInstance
+from tantalus.models import ServerStorage
 
 
 class GenericTaskTypeCreateForm(forms.ModelForm):
@@ -25,14 +26,22 @@ class GenericTaskInstanceCreateForm(forms.Form):
                                     help_text="The name of the instance.",)
 
     def __init__(self, *args, **kwargs):
-        """Create argument fields specific to the task type.
+        """Create extra fields, some specific to the task type.
 
         Expects the arguments dictionary to be included in the keyword
-        arguments with key 'task_args'.
+        arguments with key 'task_args'; as well as the default host to
+        be passed in as 'default_host'.
         """
-        # Get the arguments and call the parent constructor
+        # Get the arguments and default host, then call the parent
+        # constructor
         task_args = kwargs.pop('task_args')
+        default_host = kwargs.pop('default_host')
         super(GenericTaskInstanceCreateForm, self).__init__(*args, **kwargs)
+
+        # Create a field for the host
+        self.fields['host'] = forms.ModelChoiceField(
+                                        queryset=ServerStorage.objects.all(),
+                                        initial=default_host)
 
         # Create fields for each of the task arguments
         for i, task_arg in enumerate(task_args.iteritems(), 1):

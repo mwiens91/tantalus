@@ -113,6 +113,7 @@ class GenericTaskInstanceCreateView(LoginRequiredMixin, TemplateView):
 
         # Create a form
         form = GenericTaskInstanceCreateForm(
+                    default_host=task_type.default_host,
                     task_args=task_type.required_and_default_args)
 
         # Create the context
@@ -130,11 +131,15 @@ class GenericTaskInstanceCreateView(LoginRequiredMixin, TemplateView):
         # The form
         form = GenericTaskInstanceCreateForm(
                     request.POST,
+                    default_host=task_type.default_host,
                     task_args=task_type.required_and_default_args)
 
         if form.is_valid():
             # Success! Get the name of the instance
             instance_name = form.cleaned_data['instance_name']
+
+            # Get the host of the instance
+            host = form.cleaned_data['host']
 
             # Get all of the instance arguments and put them into a
             # dictionary
@@ -146,6 +151,7 @@ class GenericTaskInstanceCreateView(LoginRequiredMixin, TemplateView):
             # Build the instance and save it
             instance = GenericTaskInstance(task_type=task_type,
                                            instance_name=instance_name,
+                                           host=host,
                                            args=arg_dict)
             instance.save()
 
