@@ -97,7 +97,9 @@ class GenericTaskType(models.Model):
 class GenericTaskInstance(models.Model):
     """An instance of a generic task type."""
     # The type of task that this is
-    task_type = models.ForeignKey(GenericTaskType)
+    task_type = models.ForeignKey(GenericTaskType,
+                                  help_text=("The generic task type of which"
+                                             " this is an instance."))
 
     # What host the task is to be run on
     host = models.ForeignKey(ServerStorage,
@@ -112,9 +114,15 @@ class GenericTaskInstance(models.Model):
     # These will be validated in the function
     # validate_generic_task_instance_args right after instantiating an
     # instance of the task.
-    args = django.contrib.postgres.fields.JSONField(default=dict,
-                                                    null=True,
-                                                    blank=True,)
+    args = django.contrib.postgres.fields.JSONField(
+                                default=dict,
+                                null=True,
+                                blank=True,
+                                help_text=("The arguments to call the task"
+                                           " type with as a JSON object."
+                                           " The arguments must be a subset"
+                                           " of the arguments required by the"
+                                           " task type."))
 
     # Job state parameters. These variables conform to the SimpleTask
     # state representation structure.
