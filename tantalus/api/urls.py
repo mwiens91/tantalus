@@ -28,6 +28,7 @@ router.register(r'queries/gsc_dlp_paired_fastqs', views.QueryGscDlpPairedFastqsV
 router.register(r'brc_import_fastqs', views.BRCImportFastqsViewSet)
 router.register(r'import_dlp_bam', views.ImportDlpBamViewSet)
 router.register(r'generic_task_types', generictask_api_views.GenericTaskTypeViewSet)
+router.register(r'generic_task_instances', generictask_api_views.GenericTaskInstanceViewSet)
 
 schema_view = get_swagger_view(title='Tantalus API')
 
