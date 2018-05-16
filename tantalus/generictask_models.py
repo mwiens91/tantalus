@@ -3,9 +3,10 @@
 import django.contrib.postgres.fields
 from django.core.exceptions import ValidationError
 from django.db import models
-from django.db.models.signals import pre_save
+from django.db.models.signals import pre_save, post_save
 from django.dispatch import receiver
 from tantalus.models import ServerStorage
+from tantalus.tasks import start_generic_task_instance
 
 
 def return_gen_task_type_arg_default():
@@ -190,3 +191,18 @@ def validate_generic_task_instance_args(instance, **_):
 
     # Store any tacked on arguments to the instance
     instance.args = task_instance_args_dict
+
+
+@receiver(post_save, sender=GenericTaskInstance)
+def start_generic_task(instance, created, **_):
+    """Starts the task associated with a GenericTaskInstance.
+
+    This is called when a generic task is first saved (right after
+    creation).
+    """
+    # Only trigger if the instance was just created
+    if created:
+        # Start the job
+        start_generic_task_instance.apply_async(
+                args=(instance,),
+                queue=instance.get_queue_name())
