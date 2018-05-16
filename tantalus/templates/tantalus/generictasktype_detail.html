@@ -28,27 +28,32 @@
                     tantalus/tantalus/backend/task_scripts/{{ object.task_script_name }}.py
                 </td>
             </tr>
-            <tr>
-                <td class="td_name">Arguments: </td>
-                <td>
-                    {# List all the arguments in a table #}
-                    <table style="width: 100%">
-                        <tbody>
-                            <tr>
-                                <th>Argument</th>
-                                <th>Default value</th>
-                            </tr>
 
-                            {% for key, value in object.required_and_default_args.items %}
+            {# List all the arguments in a table if there are any #}
+            {% if object.required_and_default_args %}
+                <tr>
+                    <td class="td_name">Arguments: </td>
+                    <td>
+                        <table style="width: 100%">
+                            <tbody>
                                 <tr>
-                                    <td>{{ key }}</td>
-                                    <td>{{ value }}</td>
+                                    <th>Argument</th>
+                                    <th>Default value</th>
                                 </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </td>
-            </tr>
+
+                                {% for key, value in object.required_and_default_args.items %}
+                                    <tr>
+                                        <td>{{ key }}</td>
+                                        <td>{{ value }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </td>
+                </tr>
+            {% else %}
+                <tr><td class="td_name">No arguments</td></tr>
+            {% endif %}
         </table>
     </div>
 
