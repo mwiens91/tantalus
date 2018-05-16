@@ -203,3 +203,36 @@ class GenericTaskInstanceDeleteView(LoginRequiredMixin, View):
 
         return HttpResponseRedirect(reverse('generictaskinstance-list',
                                             args=(task_type_pk,)))
+
+
+class GenericTaskInstanceRestartView(LoginRequiredMixin, View):
+    """A view to restart GenericTaskInstances."""
+    def get(self, request, task_type_pk, instance_pk):
+        # Get the instance
+        instance = get_object_or_404(GenericTaskInstance, pk=instance_pk)
+
+        # Start the task
+        if not instance.running:
+            # Change the state
+            instance.state = instance.task_nametask_name.replace('_', ' ') + ' queued'
+            instance.save()
+
+            # Restart the job
+            instance.start_task()
+
+            # Log a message
+            msg = ("Successfully restarted the " + instance.task_type.task_name
+                   + " instance " + instance.instance_name + ".")
+            messages.success(request, msg)
+        else:
+            # Don't restart if the task is already running. Log a
+            # message.
+            msg = ("The " + self.instance.task_type.task_name
+                   + " instance " + instance.instance_name
+                   + "is already running.")
+            messages.warning(request, msg)
+
+        # Render the instance detail page
+        return HttpResponseRedirect(reverse('generictaskinstance-detail',
+                                            args=(task_type_pk,
+                                                  instance_pk)))
