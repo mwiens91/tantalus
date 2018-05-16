@@ -107,9 +107,12 @@ def get_log_path_for_generic_task_instance(instance, logfile=None):
     If logfile is None or an empty string, then this function returns
     the log directory path.
     """
+    # Escape the task name
+    escaped_task_name = instance.task_type.task_name.replace(" ", "-")
+
     # Get path for log directory
     log_dir = os.path.join(django.conf.settings.TASK_LOG_DIRECTORY,
-                           instance.task_type.task_name,
+                           escaped_task_name,
                            str(instance.pk),)
 
     if logfile:
