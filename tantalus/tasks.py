@@ -98,3 +98,86 @@ def import_dlp_bams_task(query_id):
         id_=query_id,
         model=tantalus.models.ImportDlpBam,
     )
+
+
+@shared_task
+def start_generic_task_instance(instance):
+    """Start a generic task instance.
+
+    This is *very* similar to the simple_task_wrapper function at the
+    top of this module, and is different only in that it accomodates the
+    GenericTask model structure (which simple_task_wrapper can't
+    accomodate).
+    """
+    # Get the log directory, and create it if it doesn't exist
+    log_dir = os.path.join(django.conf.settings.TASK_LOG_DIRECTORY,
+                           instance.task_type.task_name,
+                           str(instance.pk),)
+
+    try:
+        # Make the directory
+        os.makedirs(log_dir)
+    except OSError as e:
+        # Only allow exceptions raised due to the directory already
+        # existing; otherwise, pass along the original exception.
+        if e.errno != errno.EEXIST:
+            raise
+
+    # File paths for stdout and stderr
+    stdout_filename = os.path.join(log_dir, 'stdout.txt')
+    stderr_filename = os.path.join(log_dir, 'stderr.txt')
+
+    # Start the script
+    with open(stdout_filename, 'a', 0) as stdout_file,\
+         open(stderr_filename, 'a', 0) as stderr_file:
+
+        # Get the script path
+        script_path = os.path.join(django.conf.settings.BASE_DIR,
+                                   'tantalus',
+                                   'backend',
+                                   'task_scripts',
+                                   instance.task_type.task_script_name + '.py')
+
+        # Start the task
+        task = subprocess.Popen(['python',
+                                 '-u',              # force unbuffered output
+                                 script,            # script path
+                                 str(instance.pk)   # instance pk as only argument
+                                 ],
+                                 stdout=stdout_file,
+                                 stderr=stderr_file)
+
+        # Write a start message to both stdout and stderr
+        start_message = "!! Started task process with id {} !!\n".format(task.pid)
+        stdout_file.write(start_message)
+        stderr_file.write(start_message)
+
+        # Listen for stop signals every 10 seconds while the task is in
+        # progress
+        while task.poll() is None:
+            # Wait
+            time.sleep(10)
+
+            if instance.stopping == True:
+                # Stop message received. Ask the job nicely to stop and
+                # give it a minute to do so.
+                stderr_file.write("!! Sending interrupt to task process !!\n")
+                task.send_signal(signal.SIGINT)
+                time.sleep(60)
+
+                if task.poll() is None:
+                    # The job is still running and has either ignored
+                    # our request to stop or is taking to long. Kill the
+                    # task
+                    stderr_file.write("!! Sending kill to task process !!\n")
+                    task.kill()
+
+                instance.stopping = False
+                instance.running = False
+                instance.finished = True
+                instance.save()
+
+        # Write a completion message to both stdout and stderr
+        done_message = "!! Finished task process with id {} !!\n".format(task.pid)
+        stdout_file.write(done_message)
+        stderr_file.write(done_message)
