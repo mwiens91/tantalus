@@ -100,6 +100,26 @@ def import_dlp_bams_task(query_id):
     )
 
 
+def get_log_path_for_generic_task_instance(instance, logfile=None):
+    """Gets the log path for a generic task intance.
+
+    The path is $TASK_LOG_DIRECTORY/task_type/instance_pk/{logfile}.txt.
+    If logfile is None or an empty string, then this function returns
+    the log directory path.
+    """
+    # Get path for log directory
+    log_dir = os.path.join(django.conf.settings.TASK_LOG_DIRECTORY,
+                           instance.task_type.task_name,
+                           str(instance.pk),)
+
+    if logfile:
+        # Return the specific log file path
+        return os.path.join(log_dir, logfile + '.txt')
+    else:
+        # Return the log directory path
+        return log_dir
+
+
 @shared_task
 def start_generic_task_instance(instance):
     """Start a generic task instance.
@@ -110,9 +130,7 @@ def start_generic_task_instance(instance):
     accomodate).
     """
     # Get the log directory, and create it if it doesn't exist
-    log_dir = os.path.join(django.conf.settings.TASK_LOG_DIRECTORY,
-                           instance.task_type.task_name,
-                           str(instance.pk),)
+    log_dir = get_log_path_for_generic_task_instance(instance)
 
     try:
         # Make the directory
@@ -124,8 +142,10 @@ def start_generic_task_instance(instance):
             raise
 
     # File paths for stdout and stderr
-    stdout_filename = os.path.join(log_dir, 'stdout.txt')
-    stderr_filename = os.path.join(log_dir, 'stderr.txt')
+    stdout_filename = get_log_path_for_generic_task_instance(instance,
+                                                             'stdout')
+    stdout_filename = get_log_path_for_generic_task_instance(instance,
+                                                             'stderr')
 
     # Start the script
     with open(stdout_filename, 'a', 0) as stdout_file,\
