@@ -236,3 +236,32 @@ class GenericTaskInstanceRestartView(LoginRequiredMixin, View):
         return HttpResponseRedirect(reverse('generictaskinstance-detail',
                                             args=(task_type_pk,
                                                   instance_pk)))
+
+
+class GenericTaskInstanceStopView(LoginRequiredMixin, View):
+    """A view to stop GenericTaskInstances."""
+    def get(self, request, task_type_pk, instance_pk):
+        # Get the instance
+        instance = get_object_or_404(GenericTaskInstance, pk=instance_pk)
+
+        # Stop the task
+        if not instance.stopping:
+            # Set the stopping signal to true
+            instance.stopping = True
+            instance.save()
+
+            # Log a message
+            msg = ("Stopping the " + instance.task_type.task_name
+                   + " instance " + instance.instance_name + ".")
+            messages.success(request, msg)
+        else:
+            # The job is already stopping
+            msg = ("The " + self.instance.task_type.task_name
+                   + " instance " + instance.instance_name
+                   + "is already stopping.")
+            messages.warning(request, msg)
+
+        # Render the instance detail page
+        return HttpResponseRedirect(reverse('generictaskinstance-detail',
+                                            args=(task_type_pk,
+                                                  instance_pk)))
