@@ -28,6 +28,12 @@
                     tantalus/tantalus/backend/task_scripts/{{ object.task_script_name }}.py
                 </td>
             </tr>
+            <tr>
+                <td class="td_name">Default host: </td>
+                <td>
+                    {{ object.default_host }}
+                </td>
+            </tr>
 
             {# List all the arguments in a table if there are any #}
             {% if object.required_and_default_args %}
