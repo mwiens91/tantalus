@@ -45,7 +45,7 @@ class GenericTaskType(models.Model):
                               + " to 'script_name' in the path to the"
                               + " script "
                               + get_script_path_for_generic_task_type()
-                              + " {script_name}.py"))
+                              + "/{script_name}.py"))
 
     # What arguments the above script requires. Probably the easiest way
     # to use this field is to pass in a dictionary, and let's use that
@@ -69,7 +69,9 @@ class GenericTaskType(models.Model):
     #
     # {'arg1': None, 'arg2': 'default_val', 'arg3': None}
     required_and_default_args = django.contrib.postgres.fields.JSONField(
-                                 verbose_name="script arguments",
+                                 verbose_name=(
+                                     "script required arguments"
+                                     " (see help text)"),
                                  default=return_gen_task_type_arg_default,
                                  help_text=(
                                      "The arguments that the task requires as"
