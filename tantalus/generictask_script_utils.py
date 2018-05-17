@@ -1,6 +1,7 @@
 """Functions for running scripts associated with GenericTasks."""
 
 import errno
+import json
 import os
 import signal
 import subprocess
@@ -47,12 +48,15 @@ def get_log_path_for_generic_task_instance(instance, logfile=None):
 
 @celery.shared_task
 def start_generic_task_instance(instance):
-    """Start a generic task instance.
+    """Start and manage a generic task instance.
 
-    This is *very* similar to the simple_task_wrapper function in the
-    tasks module, and is different only in that it accomodates the
-    GenericTask model structure (which simple_task_wrapper can't
-    accomodate).
+    This is different from the Simple Task structure in that *all* of
+    the Django processing of the script is done in this function. The
+    scripts in the generic task scripts directory have no knowledge of
+    and access to django.
+
+    Here the script is run with its sole argument being a JSON string
+    which contains all of the argument names and their values.
     """
     # Get the log directory, and create it if it doesn't exist
     log_dir = get_log_path_for_generic_task_instance(instance)
@@ -81,12 +85,20 @@ def start_generic_task_instance(instance):
 
         # Start the task
         task = subprocess.Popen(['python',
-                                 '-u',              # force unbuffered output
-                                 script_path,       # script path
-                                 str(instance.pk)   # instance pk as only argument
+                                 '-u',                  # force unbuffered output
+                                 script_path,           # script path
+                                 json.dumps(instance.args),     # args
                                 ],
                                 stdout=stdout_file,
                                 stderr=stderr_file)
+
+        # Set the task's job management state to indicate that it's
+        # running
+        instance.running = True
+        instance.finished = False
+        instance.success = False
+        instance.state = instance.task_type.task_name + ' started'
+        instance.save()
 
         # Write a start message to both stdout and stderr
         start_message = "!! Started task process with id {} !!\n".format(task.pid)
@@ -95,10 +107,34 @@ def start_generic_task_instance(instance):
 
         # Listen for stop signals every 10 seconds while the task is in
         # progress
-        while task.poll() is None:
-            # Wait
+        finished = False
+
+        while not finished:
+            # Get the return code if one exists
+            return_code = task.poll()
+
+            # Wait a bit
             time.sleep(10)
 
+            # Find out whether our job is finished. If it is, update the
+            # job state variables and break out of this loop
+            if return_code is not None:
+                # Job's done
+                instance.running = False
+                instance.finished = True
+
+                if return_code is 0:
+                    # The job was successful
+                    instance.success = True
+                    instance.state = instance.task_type.task_name + ' succesful'
+                else:
+                    # The job failed
+                    instance.state = instance.task_type.task_name + ' failed'
+
+                # Get out of the loop
+                break
+
+            # Find out whether we need to stop our running job
             if instance.stopping:
                 # Stop message received. Ask the job nicely to stop and
                 # give it a minute to do so.
@@ -106,13 +142,17 @@ def start_generic_task_instance(instance):
                 task.send_signal(signal.SIGINT)
                 time.sleep(60)
 
-                if task.poll() is None:
+                # Make sure the job is complete
+                return_code_new = task.poll()
+
+                if return_code_new is None:
                     # The job is still running and has either ignored
                     # our request to stop or is taking to long. Kill the
                     # task.
                     stderr_file.write("!! Sending kill to task process !!\n")
                     task.kill()
 
+                # Update job state variables
                 instance.stopping = False
                 instance.running = False
                 instance.finished = True
