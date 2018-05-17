@@ -160,7 +160,7 @@ def start_generic_task_instance(instance):
     # File paths for stdout and stderr
     stdout_filename = get_log_path_for_generic_task_instance(instance,
                                                              'stdout')
-    stdout_filename = get_log_path_for_generic_task_instance(instance,
+    stderr_filename = get_log_path_for_generic_task_instance(instance,
                                                              'stderr')
 
     # Start the script
