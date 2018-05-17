@@ -284,8 +284,7 @@ class GenericTaskInstanceRestartView(LoginRequiredMixin, View):
         # Start the task
         if not instance.running:
             # Change the state
-            instance.state = (instance.task_nametask_name.replace('_', ' ')
-                              + ' queued')
+            instance.state = instance.task_type.task_name + ' queued'
             instance.save()
 
             # Restart the job
