@@ -3,11 +3,17 @@
 from django import forms
 from django.utils.safestring import mark_safe
 from tantalus.generictask_models import GenericTaskType
+from tantalus.generictask_script_utils import get_all_script_names
 from tantalus.models import ServerStorage
 
 
 class GenericTaskTypeCreateForm(forms.ModelForm):
     """A form to create a GenericTask."""
+    # Make the task_script_path select between available scripts
+    task_script_path = forms.ChoiceField(
+                            choices=[(path, path) for path
+                                            in get_all_script_names()])
+
     class Meta:
         model = GenericTaskType
         fields = ('task_name',

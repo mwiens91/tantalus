@@ -57,6 +57,30 @@ def get_log_path_for_generic_task_instance(instance, logfile=None):
     return log_dir
 
 
+def get_all_script_names():
+    """Gets the names of all scripts in script directory.
+
+    Returns a list of the script names as strings.
+    """
+    # Get the script directory
+    script_dir = get_script_path_for_generic_task_type()
+
+    # Get the character length of the script directory in a
+    # representation where it has a trailing slash
+    root_len = (len(script_dir) if script_dir.endswith('/')
+                                            else len(script_dir) + 1)
+
+    # Collect the script names
+    script_names = []
+
+    for dirpath, dirnames, filenames in os.walk(script_dir):
+        for filename in filenames:
+            # Add the script path but don't include the root path
+            script_names.append(os.path.join(dirpath[root_len:], filename))
+
+    return script_names
+
+
 @celery.shared_task
 def start_generic_task_instance(instance):
     """Start and manage a generic task instance.
