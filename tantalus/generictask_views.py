@@ -220,19 +220,41 @@ class GenericTaskInstanceCreateView(LoginRequiredMixin, TemplateView):
 
 
 class GenericTaskInstanceDetailView(TemplateView):
-    """A view to see a specific GenericTaskInstance.
-
-    This will need to be updated once the Celery hooks are in. What's
-    here is a placeholder until then.
-    """
+    """A view to see a specific GenericTaskInstance."""
     template_name = 'tantalus/generictaskinstance_detail.html'
 
     def get(self, request, task_type_pk, instance_pk):
         # Build the context
         task_type = GenericTaskType.objects.get(pk=task_type_pk)
         instance = GenericTaskInstance.objects.get(pk=instance_pk)
+
+        # Get stdout and stderr. Look at the template for this if
+        # anything of this is even moderately confusing.
+        stdout_page, stderr_page = self.request.GET.get('page',
+                                                        '1,1').split(',')
+
+        # Stdout
+        try:
+            stdout = paginate_generic_task_instance_log(instance,
+                                                        'stdout',
+                                                        stdout_page)
+        except IOError:
+            # The log file doesn't exist
+            stdout = ''
+
+        # Stderr
+        try:
+            stderr = paginate_generic_task_instance_log(instance,
+                                                        'stderr',
+                                                        stderr_page)
+        except IOError:
+            # The log file doesn't exist
+            stderr = ''
+
         context = {'task_type': task_type,
-                   'instance': instance,}
+                   'instance': instance,
+                   'stdout': stdout,
+                   'stderr': stderr,}
 
         # Render the context
         return render(request, self.template_name, context)
@@ -313,3 +335,20 @@ class GenericTaskInstanceStopView(LoginRequiredMixin, View):
         return HttpResponseRedirect(reverse('generictaskinstance-detail',
                                             args=(task_type_pk,
                                                   instance_pk)))
+
+
+class GenericTaskInstanceLogView(TemplateView):
+    """A view to see logs of an instance's job."""
+    template_name = 'tantalus/generictaskinstance_logoutput.html'
+
+    def get(self, request, task_type_pk, instance_pk, logfile):
+        # Get the instance
+        instance = GenericTaskInstance.objects.get(pk=instance_pk)
+
+        # Put the log in a context
+        context = {'log_output': get_generic_task_instance_log(instance,
+                                                               logfile,
+                                                               raw=True),}
+
+        # Render the context
+        return render(request, self.template_name, context)
