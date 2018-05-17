@@ -72,14 +72,14 @@ class GenericTaskType(models.Model):
                                  verbose_name="script arguments",
                                  default=return_gen_task_type_arg_default,
                                  help_text=(
-                                    "The arguments that the task requires as"
-                                    " a JSON object. Looking at the object as"
-                                    " a dictionary, the keys are the argument"
-                                    " names and the corresponding values are"
-                                    " the default values for these arguments."
-                                    " To specify an argument with no default"
-                                    " value, simply use 'null' (without the"
-                                    " quotes) as its value."),
+                                     "The arguments that the task requires as"
+                                     " a JSON object. Looking at the object as"
+                                     " a dictionary, the keys are the argument"
+                                     " names and the corresponding values are"
+                                     " the default values for these arguments."
+                                     " To specify an argument with no default"
+                                     " value, simply use 'null' (without the"
+                                     " quotes) as its value."),
                                  null=True,
                                  blank=True,)
 

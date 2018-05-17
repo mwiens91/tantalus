@@ -2,7 +2,7 @@
 
 from django import forms
 from django.utils.safestring import mark_safe
-from tantalus.generictask_models import GenericTaskType, GenericTaskInstance
+from tantalus.generictask_models import GenericTaskType
 from tantalus.models import ServerStorage
 
 

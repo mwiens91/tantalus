@@ -131,9 +131,9 @@ def get_log_path_for_generic_task_instance(instance, logfile=None):
     if logfile:
         # Return the specific log file path
         return os.path.join(log_dir, logfile + '.txt')
-    else:
-        # Return the log directory path
-        return log_dir
+
+    # Return the log directory path
+    return log_dir
 
 
 @shared_task
@@ -175,9 +175,9 @@ def start_generic_task_instance(instance):
                                  '-u',              # force unbuffered output
                                  script_path,       # script path
                                  str(instance.pk)   # instance pk as only argument
-                                 ],
-                                 stdout=stdout_file,
-                                 stderr=stderr_file)
+                                ],
+                                stdout=stdout_file,
+                                stderr=stderr_file)
 
         # Write a start message to both stdout and stderr
         start_message = "!! Started task process with id {} !!\n".format(task.pid)
@@ -190,7 +190,7 @@ def start_generic_task_instance(instance):
             # Wait
             time.sleep(10)
 
-            if instance.stopping == True:
+            if instance.stopping:
                 # Stop message received. Ask the job nicely to stop and
                 # give it a minute to do so.
                 stderr_file.write("!! Sending interrupt to task process !!\n")
@@ -200,7 +200,7 @@ def start_generic_task_instance(instance):
                 if task.poll() is None:
                     # The job is still running and has either ignored
                     # our request to stop or is taking to long. Kill the
-                    # task
+                    # task.
                     stderr_file.write("!! Sending kill to task process !!\n")
                     task.kill()
 

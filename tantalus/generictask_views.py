@@ -213,7 +213,7 @@ class GenericTaskInstanceCreateView(LoginRequiredMixin, TemplateView):
         else:
             # Not success!
             msg = ("Failed to create the " + task_type.task_name + " instance."
-                             " Please fix the errors below.")
+                   + " Please fix the errors below.")
             messages.error(request, msg)
         # Return the invalid form
         return render(request, self.template_name, {'form': form})
