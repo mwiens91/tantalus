@@ -10,17 +10,28 @@ import celery
 import django.conf
 
 
-def get_script_path_for_generic_task_type(task_type):
+def get_script_path_for_generic_task_type(task_type=None):
     """Gets the script path for a generic task type.
 
     The path is
-    $DJANGO_BASE_DIR/tantalus/backend/generic_task_scripts/script.py.
+    $DJANGO_BASE_DIR/tantalus/backend/generic_task_scripts/script.py. If
+    this function is called without a task type, then it simply returns
+    the directory that contains all of the scripts
+    (generic_task_scripts/).
     """
+    if task_type:
+        # Return the script path
+        return os.path.join(django.conf.settings.BASE_DIR,
+                            'tantalus',
+                            'backend',
+                            'generic_task_scripts',
+                            task_type.task_script_name + '.py')
+
+    # Return the directory path
     return os.path.join(django.conf.settings.BASE_DIR,
                         'tantalus',
                         'backend',
-                        'generic_task_scripts',
-                        task_type.task_script_name + '.py')
+                        'generic_task_scripts')
 
 
 def get_log_path_for_generic_task_instance(instance, logfile=None):

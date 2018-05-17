@@ -36,17 +36,16 @@ class GenericTaskType(models.Model):
 
     # The name of the script used by this generic task type. This needs
     # to be "task_script_name", where the script associated with this
-    # task is found at, starting from the root of the repository,
-    # tantalus/tantalus/backend/task_scripts/{task_script_name}.py
+    # task is found at the path specified in the script utils module
     task_script_name = models.CharField(
                           max_length=50,
-                          help_text=("The name of the task script name,"
-                                     " where the name you enter here refers"
-                                     " to 'script_name' in the path to the"
-                                     " script "
-                                     "tantalus/tantalus/backend/task_scripts/"
-                                     "{task_script_name}.py, relative to the"
-                                     " root of the Tantalus respository."))
+                          help_text=(
+                              "The name of the task script name,"
+                              + " where the name you enter here refers"
+                              + " to 'script_name' in the path to the"
+                              + " script "
+                              + get_script_path_for_generic_task_type()
+                              + " {script_name}.py"))
 
     # What arguments the above script requires. Probably the easiest way
     # to use this field is to pass in a dictionary, and let's use that
@@ -96,7 +95,8 @@ class GenericTaskType(models.Model):
         """Gets the path to the script.
 
         The path location logic is defined in the module relating to
-        running generictasks.
+        running generictasks. The reason this method is exists is due to
+        it needing to be called in a template.
         """
         return get_script_path_for_generic_task_type(self)
 
