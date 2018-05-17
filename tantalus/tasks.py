@@ -100,6 +100,19 @@ def import_dlp_bams_task(query_id):
     )
 
 
+def get_script_path_for_generic_task_type(task_type):
+    """Gets the script path for a generic task type.
+
+    The path is
+    $DJANGO_BASE_DIR/tantalus/backend/generic_task_scripts/script.py.
+    """
+    return os.path.join(django.conf.settings.BASE_DIR,
+                        'tantalus',
+                        'backend',
+                        'generic_task_scripts',
+                        task_type.task_script_name + '.py')
+
+
 def get_log_path_for_generic_task_instance(instance, logfile=None):
     """Gets the log path for a generic task intance.
 
@@ -155,16 +168,12 @@ def start_generic_task_instance(instance):
          open(stderr_filename, 'a', 0) as stderr_file:
 
         # Get the script path
-        script_path = os.path.join(django.conf.settings.BASE_DIR,
-                                   'tantalus',
-                                   'backend',
-                                   'task_scripts',
-                                   instance.task_type.task_script_name + '.py')
+        script_path = get_script_path_for_generic_task_type(instance.task_type)
 
         # Start the task
         task = subprocess.Popen(['python',
                                  '-u',              # force unbuffered output
-                                 script,            # script path
+                                 script_path,       # script path
                                  str(instance.pk)   # instance pk as only argument
                                  ],
                                  stdout=stdout_file,

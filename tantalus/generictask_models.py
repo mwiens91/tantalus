@@ -6,7 +6,8 @@ from django.db import models
 from django.db.models.signals import pre_save, post_save
 from django.dispatch import receiver
 from tantalus.models import ServerStorage
-from tantalus.tasks import start_generic_task_instance
+from tantalus.tasks import (get_script_path_for_generic_task_type,
+                            start_generic_task_instance)
 
 
 def return_gen_task_type_arg_default():
@@ -89,6 +90,14 @@ class GenericTaskType(models.Model):
                                          "The default host an instance of"
                                          " this task will run on (unless"
                                          " otherwise specified)"),)
+
+    def get_script_path(self):
+        """Gets the path to the script.
+
+        The path location logic is defined in the module relating to
+        running generictasks.
+        """
+        return get_script_path_for_generic_task_type(self)
 
     def __str__(self):
         """String representation of the task type."""
