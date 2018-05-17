@@ -6,8 +6,9 @@ from django.db import models
 from django.db.models.signals import pre_save, post_save
 from django.dispatch import receiver
 from tantalus.models import ServerStorage
-from tantalus.tasks import (get_script_path_for_generic_task_type,
-                            start_generic_task_instance)
+from tantalus.generictask_script_utils import (
+                            get_script_path_for_generic_task_type,
+                            start_generic_task_instance,)
 
 
 def return_gen_task_type_arg_default():

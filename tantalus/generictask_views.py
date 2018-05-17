@@ -12,7 +12,8 @@ from django.shortcuts import get_object_or_404, render
 from tantalus.generictask_forms import (GenericTaskTypeCreateForm,
                                         GenericTaskInstanceCreateForm,)
 from tantalus.generictask_models import GenericTaskType, GenericTaskInstance
-from tantalus.tasks import get_log_path_for_generic_task_instance
+from tantalus.generictask_script_utils import (
+                                        get_log_path_for_generic_task_instance)
 
 
 class GenericTaskTypeListView(TemplateView):
