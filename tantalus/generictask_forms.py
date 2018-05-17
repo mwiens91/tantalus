@@ -11,7 +11,7 @@ class GenericTaskTypeCreateForm(forms.ModelForm):
     class Meta:
         model = GenericTaskType
         fields = ('task_name',
-                  'task_script_name',
+                  'task_script_path',
                   'default_host',
                   'required_and_default_args',)
 

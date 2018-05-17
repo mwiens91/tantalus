@@ -25,7 +25,7 @@ def get_script_path_for_generic_task_type(task_type=None):
                             'tantalus',
                             'backend',
                             'generic_task_scripts',
-                            task_type.task_script_name + '.py')
+                            task_type.task_script_path)
 
     # Return the directory path
     return os.path.join(django.conf.settings.BASE_DIR,

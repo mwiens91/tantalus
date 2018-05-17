@@ -34,18 +34,14 @@ class GenericTaskType(models.Model):
                                  unique=True,
                                  help_text="The name of the task.")
 
-    # The name of the script used by this generic task type. This needs
-    # to be "task_script_name", where the script associated with this
-    # task is found at the path specified in the script utils module
-    task_script_name = models.CharField(
-                          max_length=50,
+    # The path of the script used by this generic task type relative to
+    # the root of the generic task scripts directory.
+    task_script_path = models.CharField(
+                          max_length=400,
                           help_text=(
-                              "The name of the task script name,"
-                              + " where the name you enter here refers"
-                              + " to 'script_name' in the path to the"
-                              + " script "
-                              + get_script_path_for_generic_task_type()
-                              + "/{script_name}.py"))
+                                "The path of the script used by this generic"
+                                " task type (relative to the root of the"
+                                " generic task scripts directory."))
 
     # What arguments the above script requires. Probably the easiest way
     # to use this field is to pass in a dictionary, and let's use that
