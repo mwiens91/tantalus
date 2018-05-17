@@ -154,7 +154,7 @@ class GenericTaskInstance(models.Model):
         """Starts the task associated with a GenericTaskInstance."""
         # Start the job
         start_generic_task_instance.apply_async(
-                args=(self,),
+                args=(self.pk,),
                 queue=self.get_queue_name())
 
     def __str__(self):

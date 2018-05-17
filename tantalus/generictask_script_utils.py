@@ -8,6 +8,7 @@ import subprocess
 import time
 import celery
 import django.conf
+import tantalus.generictask_models
 
 
 def get_script_path_for_generic_task_type(task_type=None):
@@ -82,7 +83,7 @@ def get_all_script_names():
 
 
 @celery.shared_task
-def start_generic_task_instance(instance):
+def start_generic_task_instance(instance_pk):
     """Start and manage a generic task instance.
 
     This is different from the Simple Task structure in that *all* of
@@ -93,6 +94,10 @@ def start_generic_task_instance(instance):
     Here the script is run with its sole argument being a JSON string
     which contains all of the argument names and their values.
     """
+    # Get the instance corresponding to the pk passed in
+    instance = tantalus.generictask_models.GenericTaskInstance.objects.get(
+                                                                pk=instance_pk)
+
     # Get the log directory, and create it if it doesn't exist
     log_dir = get_log_path_for_generic_task_instance(instance)
 
