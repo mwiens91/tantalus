@@ -7,7 +7,7 @@ from django.db.models.signals import pre_save, post_save
 from django.dispatch import receiver
 from tantalus.models import ServerStorage
 from tantalus.generictask_script_utils import (
-                            get_script_path_for_generic_task_type,
+                            get_absolute_script_path_for_generic_task_type,
                             start_generic_task_instance,)
 
 
@@ -36,7 +36,7 @@ class GenericTaskType(models.Model):
 
     # The path of the script used by this generic task type relative to
     # the root of the generic task scripts directory.
-    task_script_path = models.CharField(
+    relative_script_path = models.CharField(
                           max_length=400,
                           help_text=(
                                 "The path of the script used by this generic"
@@ -89,14 +89,14 @@ class GenericTaskType(models.Model):
                                          " this task will run on (unless"
                                          " otherwise specified)"),)
 
-    def get_script_path(self):
-        """Gets the path to the script.
+    def get_absolute_script_path(self):
+        """Gets the absolute path to the script.
 
         The path location logic is defined in the module relating to
         running generictasks. The reason this method is exists is due to
         it needing to be called in a template.
         """
-        return get_script_path_for_generic_task_type(self)
+        return get_absolute_script_path_for_generic_task_type(self)
 
     def __str__(self):
         """String representation of the task type."""

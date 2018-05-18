@@ -8,10 +8,7 @@ class GenericTaskTypeSerializer(serializers.ModelSerializer):
     """A serializer for a generic task type."""
     class Meta:
         model = GenericTaskType
-        fields = ('task_name',
-                  'task_script_path',
-                  'default_host',
-                  'required_and_default_args',)
+        fields = '__all__'
 
 class GenericTaskInstanceSerializer(serializers.ModelSerializer):
     """A serializer for a generic task instance."""

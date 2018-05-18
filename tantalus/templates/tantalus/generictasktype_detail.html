@@ -19,13 +19,13 @@
             <tr>
                 <td class="td_name">Task script name:</td>
                 <td>
-                    {{ object.task_script_name }}
+                    {{ object.relative_script_path }}
                 </td>
             </tr>
             <tr>
                 <td class="td_name">Task script location:</td>
                 <td>
-                    {{ object.get_script_path }}
+                    {{ object.get_absolute_script_path }}
                 </td>
             </tr>
             <tr>

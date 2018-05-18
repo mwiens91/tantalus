@@ -28,8 +28,8 @@
                         {% for tasktype in tasktypes %}
                             <tr>
                                 <td><a href="{% url 'generictasktype-detail' tasktype.pk %}">{{tasktype.pk}}</a></td>
-                                <td>{{tasktype.task_name}}</td>
-                                <td>{{tasktype.task_script_name}}</td>
+                                <td>{{ tasktype.task_name }}</td>
+                                <td>{{ tasktype.relative_script_path }}</td>
                                 <td>
                                     <a href="{% url 'generictasktype-delete' tasktype.pk %}"><i class="icon-remove-sign" style="color:red"></i> delete</a>
                                 </td>

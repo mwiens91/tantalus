@@ -11,8 +11,8 @@ import django.conf
 import tantalus.generictask_models
 
 
-def get_script_path_for_generic_task_type(task_type=None):
-    """Gets the script path for a generic task type.
+def get_absolute_script_path_for_generic_task_type(task_type=None):
+    """Gets the absolute script path for a generic task type.
 
     The path is
     $DJANGO_BASE_DIR/tantalus/backend/generic_task_scripts/script.py. If
@@ -26,7 +26,7 @@ def get_script_path_for_generic_task_type(task_type=None):
                             'tantalus',
                             'backend',
                             'generic_task_scripts',
-                            task_type.task_script_path)
+                            task_type.relative_script_path)
 
     # Return the directory path
     return os.path.join(django.conf.settings.BASE_DIR,
@@ -58,13 +58,13 @@ def get_log_path_for_generic_task_instance(instance, logfile=None):
     return log_dir
 
 
-def get_all_script_names():
-    """Gets the names of all scripts in script directory.
+def get_all_relative_script_paths():
+    """Gets the relative paths of all scripts in script directory.
 
-    Returns a list of the script names as strings.
+    Returns a list of the relative script paths as strings.
     """
     # Get the script directory
-    script_dir = get_script_path_for_generic_task_type()
+    script_dir = get_absolute_script_path_for_generic_task_type()
 
     # Get the character length of the script directory in a
     # representation where it has a trailing slash
@@ -72,14 +72,14 @@ def get_all_script_names():
                                             else len(script_dir) + 1)
 
     # Collect the script names
-    script_names = []
+    script_paths = []
 
     for dirpath, dirnames, filenames in os.walk(script_dir):
         for filename in filenames:
             # Add the script path but don't include the root path
-            script_names.append(os.path.join(dirpath[root_len:], filename))
+            script_paths.append(os.path.join(dirpath[root_len:], filename))
 
-    return script_names
+    return script_paths
 
 
 @celery.shared_task
@@ -121,7 +121,8 @@ def start_generic_task_instance(instance_pk):
          open(stderr_filename, 'a', 0) as stderr_file:
 
         # Get the script path
-        script_path = get_script_path_for_generic_task_type(instance.task_type)
+        script_path = get_absolute_script_path_for_generic_task_type(
+                                                            instance.task_type)
 
         # Start the task
         task = subprocess.Popen(['python',
