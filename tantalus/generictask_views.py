@@ -297,7 +297,7 @@ class GenericTaskInstanceRestartView(LoginRequiredMixin, View):
         else:
             # Don't restart if the task is already running. Log a
             # message.
-            msg = ("The " + self.instance.task_type.task_name
+            msg = ("The " + instance.task_type.task_name
                    + " instance " + instance.instance_name
                    + "is already running.")
             messages.warning(request, msg)
