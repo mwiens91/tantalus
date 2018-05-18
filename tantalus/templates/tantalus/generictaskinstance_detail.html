@@ -2,7 +2,7 @@
 {% load staticfiles %}
 
 {% block title %}
-    {{ task_type.task_name }}: {{ instance.instance_name }}
+    {{ task_type.task_name }} task: {{ instance.instance_name }}
 {% endblock %}
 
 {% block body %}
@@ -17,10 +17,11 @@
             <tbody>
             <tr><th id="thid">Instance&nbsp;name:</th><td id="tdid">{{ instance.instance_name }}</td></tr>
             <tr><th id="thid">Task&nbsp;name:</th><td id="tdid">{{ instance.task_type.task_name }}</td></tr>
+            <tr><th id="thid">Relative&nbsp;script&nbsp;path:</th><td id="tdid">{{ instance.task_type.relative_script_path }}</td></tr>
+            <tr><th id="thid">JSON&nbsp;arguments&nbsp;dump:</th><td id="tdid"><pre><code>{{ instance.dump_args_as_JSON_string }}</code></pre></td></tr>
 
-            {% for arg, value in instance.args.items %}
-                <tr><th id="thid">{{ arg }}:</th><td id="tdid">{{ value }}</td></tr>
-            {% endfor %}
+            {# Blank row. There's probably a better way to do this? #}
+            <tr><th></th><td></td></tr>
 
             <tr><th id="thid">Host:</th><td id="tdid">{{ instance.host }}</td></tr>
             <tr><th id="thid">Running:</th><td id="tdid">{{ instance.running }}</td></tr>
@@ -43,7 +44,8 @@
         <br />
 
         {# stdout #}
-        {% if stdout %} <div class="container" style="padding:0; margin-bottom:5px;">
+        {% if stdout %}=
+        <div class="container" style="padding:0; margin-bottom:5px;">
                 <table>
                     <tr>
                         <td><h4>Task Standard Output</h4></td>

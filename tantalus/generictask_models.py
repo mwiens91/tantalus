@@ -1,5 +1,6 @@
 """GenericTask models and related functions."""
 
+import json
 import django.contrib.postgres.fields
 from django.core.exceptions import ValidationError
 from django.db import models
@@ -156,6 +157,10 @@ class GenericTaskInstance(models.Model):
         start_generic_task_instance.apply_async(
                 args=(self.pk,),
                 queue=self.get_queue_name())
+
+    def dump_args_as_JSON_string(self):
+        """Returns a string containing args as JSON."""
+        return json.dumps(self.args)
 
     def __str__(self):
         """String representation of the task instance."""

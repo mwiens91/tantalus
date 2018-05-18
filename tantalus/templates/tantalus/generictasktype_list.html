@@ -19,7 +19,9 @@
                         <tr>
                             <th>ID</th>
                             <th>Task name</th>
-                            <th>Task script name</th>
+                            <th>Relative script path</th>
+                            <th>Default host</th>
+                            <th># args</th>
                             <th></th>
                         </tr>
                     </thead>
@@ -30,6 +32,8 @@
                                 <td><a href="{% url 'generictasktype-detail' tasktype.pk %}">{{tasktype.pk}}</a></td>
                                 <td>{{ tasktype.task_name }}</td>
                                 <td>{{ tasktype.relative_script_path }}</td>
+                                <td>{{ tasktype.default_host }}</td>
+                                <td>{{ tasktype.required_and_default_args.items|length }}</td>
                                 <td>
                                     <a href="{% url 'generictasktype-delete' tasktype.pk %}"><i class="icon-remove-sign" style="color:red"></i> delete</a>
                                 </td>
