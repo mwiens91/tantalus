@@ -44,8 +44,8 @@
         <br />
 
         {# stdout #}
-        {% if stdout %}=
-        <div class="container" style="padding:0; margin-bottom:5px;">
+        {% if stdout %}
+            <div class="container" style="padding:0; margin-bottom:5px;">
                 <table>
                     <tr>
                         <td><h4>Task Standard Output</h4></td>
@@ -54,7 +54,7 @@
             </div>
 
             <div style="height:auto; overflow:scroll;">
-                <pre><code>{% for line in stdout %}{{line}}{% endfor %}</code></pre>
+                <pre><code>{% for line in stdout %}{{ line }}{% endfor %}</code></pre>
             </div>
 
             <span class="step-links pagination">
@@ -84,7 +84,7 @@
             </div>
 
             <div style="height:auto; overflow:scroll;">
-                <pre><code>{% for line in stderr %}{{line}}{% endfor %}</code></pre>
+                <pre><code>{% for line in stderr %}{{ line }}{% endfor %}</code></pre>
             </div>
 
             <span class="step-links pagination">
