@@ -102,8 +102,8 @@ def get_generic_task_instance_log(instance,
                     # Only return preview_size many lines
                     break
 
-                # Return the list of lines
-                return log_lines
+            # Return the list of lines
+            return log_lines
         else:
             # Return the log as a single string
             return log_file.read()
