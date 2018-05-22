@@ -146,8 +146,8 @@ def start_generic_task_instance(instance_pk):
         stdout_file.write(start_message)
         stderr_file.write(start_message)
 
-        # Listen for stop signals every 10 seconds while the task is in
-        # progress
+        # Listen for a return code or stop signals every 10 seconds
+        # while the task is in progress
         finished = False
 
         while not finished:
@@ -173,10 +173,8 @@ def start_generic_task_instance(instance_pk):
                     instance.state = instance.task_type.task_name + ' failed'
 
                 # Get out of the loop
-                break
-
-            # Find out whether we need to stop our running job
-            if instance.stopping:
+                finished = True
+            elif instance.stopping:
                 # Stop message received. Ask the job nicely to stop and
                 # give it a minute to do so.
                 stderr_file.write("!! Sending interrupt to task process !!\n")
@@ -198,6 +196,9 @@ def start_generic_task_instance(instance_pk):
                 instance.running = False
                 instance.finished = True
                 instance.save()
+
+                # Get out of the loop
+                finished = True
 
         # Write a completion message to both stdout and stderr
         done_message = "!! Finished task process with id {} !!\n".format(task.pid)
