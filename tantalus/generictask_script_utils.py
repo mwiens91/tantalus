@@ -172,6 +172,9 @@ def start_generic_task_instance(instance_pk):
                     # The job failed
                     instance.state = instance.task_type.task_name + ' failed'
 
+                # Save the instance
+                instance.save()
+
                 # Get out of the loop
                 finished = True
             elif instance.stopping:
