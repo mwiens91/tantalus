@@ -151,11 +151,11 @@ def start_generic_task_instance(instance_pk):
         finished = False
 
         while not finished:
-            # Get the return code if one exists
-            return_code = task.poll()
-
             # Wait a bit
             time.sleep(10)
+
+            # Get the return code if one exists
+            return_code = task.poll()
 
             # Find out whether our job is finished. If it is, update the
             # job state variables and break out of this loop
