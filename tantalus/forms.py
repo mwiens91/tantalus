@@ -12,7 +12,7 @@ from django.db import transaction
 from django.db.models import Q, Count
 from django.shortcuts import get_object_or_404
 
-from .models import Sample, AbstractDataSet, FileTransfer, FileResource, SequenceLane, DNALibrary, Tag, GscWgsBamQuery, GscDlpPairedFastqQuery, BRCFastqImport, ServerStorage, Storage
+from .models import Sample, AbstractDataSet, FileTransfer, FileResource, SequenceLane, DNALibrary, Tag, GscWgsBamQuery, GscDlpPairedFastqQuery, BRCFastqImport, ServerStorage, AzureBlobStorage, AzureBlobCredentials, Storage
 import tantalus.tasks
 
 
@@ -394,3 +394,58 @@ class BRCFastqImportCreateForm(SimpleTaskCreateForm):
     class Meta:
         model = BRCFastqImport
         fields = ('output_dir', 'storage', 'flowcell_id')
+
+
+class AzureBlobStorageCreateForm(forms.ModelForm):
+    """A form to create new Azure blob storage containers."""
+    storage_key = forms.CharField(max_length=200)
+
+    class Meta:
+        model = AzureBlobStorage
+        fields = ('storage_account', 'storage_container', 'storage_key')
+
+    def save(self):
+        """Custom save method to hook in Credential creation.
+
+        This could also be done with a pre_save model signal if you want
+        the API to conform to the same creation parameters.
+        """
+        # Load the data
+        data = self.cleaned_data
+
+        # Save the credentials
+        credentials = AzureBlobCredentials(storage_key=data['storage_key'])
+        credentials.save()
+
+        # Name the container according to its storage account and
+        # container
+        name = data['storage_account'] + '-' + data['storage_container']
+
+        # Save the container
+        container = AzureBlobStorage(
+            name=name,
+            storage_account=data['storage_account'],
+            storage_container=data['storage_container'],
+            credentials=credentials,)
+        container.save()
+
+        return container
+
+class AzureBlobStorageUpdateCredentialsForm(forms.Form):
+    """A form to update Azure blob storage credentials."""
+    new_storage_key = forms.CharField(max_length=200)
+
+    def save(self, azure_blob_storage):
+        """Custom save method to update storage credentials."""
+        # Load the data
+        data = self.cleaned_data
+
+        # Save the credentials
+        credentials = azure_blob_storage.credentials
+        credentials.storage_key = data['new_storage_key']
+        credentials.save()
+
+        # Save the container
+        azure_blob_storage.save()
+
+        return azure_blob_storage

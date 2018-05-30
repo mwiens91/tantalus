@@ -1,0 +1,44 @@
+{% extends "tantalus/base_view.html" %}
+{% load staticfiles %}
+
+{% block title %}
+    Azure Blob Storage Containers
+{% endblock %}
+
+{% block body %}
+    <div class="container" style="padding:0; margin-bottom:5px;">
+        <a class="btn btn-primary btn-sm" style="float:right; margin-top:5px;" href="{% url 'azureblobstorage-create' %}">Add Azure blob storage container</a>
+    </div>
+
+    <div class="container" style="background-color:#F5F5F5;">
+        {% if azure_containers %}
+            <div class="table-responsive">
+                <table id="datatable" class="table table-striped" style="display:none;">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>Container name</th>
+                            <th>Storage account</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <br/>
+                        {% for container in azure_containers %}
+                            <tr>
+                                <td>{{ container.pk }}</td>
+                                <td>{{ container.name }}</td>
+                                <td>{{ container.get_storage_container }}</td>
+                                <td>{{ container.storage_account }}</td>
+                                <td><a href="{% url 'azureblobstorage-credentials-update' container.pk %}"><i class="fa fa-sticky-note"></i> update credentials</a></td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <h5><i class="text-warning">No Azure blob storage containers.</i></h5>
+        {% endif %}
+    </div>
+{% endblock %}

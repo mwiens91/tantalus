@@ -83,5 +83,8 @@ urlpatterns = [
     url(r'^datasets/tag$', tantalus.views.DatasetTag.as_view(), name='dataset-tag'),
     url(r'^datasets/tag/csv$', tantalus.views.dataset_set_to_CSV, name='dataset-tag-csv'),
     url(r'^datasets/search$', tantalus.views.DatasetSearch.as_view(), name='dataset-search'),
+    url(r'^azureblobstorages/$', tantalus.views.AzureBlobStorageListView.as_view(), name='azureblobstorage-list'),
+    url(r'^azureblobstorages/create$', tantalus.views.AzureBlobStorageCreateView.as_view(), name='azureblobstorage-create'),
+    url(r'^azureblobstorages/updatecredentials/(?P<pk>\d+)$', tantalus.views.AzureBlobStorageUpdateCredentialsView.as_view(), name='azureblobstorage-credentials-update'),
     url(r'^$', tantalus.views.HomeView.as_view(), name='home'),
 ]

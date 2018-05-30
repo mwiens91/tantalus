@@ -44,7 +44,9 @@
                     <td><a href="{% url 'filetransfer-list' %}">File Transfers</a> <i class="counter">{{file_transfer_count}}</i></td>
                     <td>
                         <p style="float:right;">
-                        <a href="{% url 'filetransfer-create' %}"><i class="fa fa-plus" aria-hidden="true" style="color:green;"></i> Add</a></p>
+                            <a href="{% url 'filetransfer-create' %}"><i class="fa fa-plus" aria-hidden="true" style="color:green;"></i> Add</a>
+                            <a href="{% url 'azureblobstorage-list' %}" style="margin-left: 1em"><i class="fa fa-bars" aria-hidden="true"></i> Manage Azure storages</a>
+                        </p>
                     </td>
                 </tr>
                 <tr>

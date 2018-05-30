@@ -1,6 +1,7 @@
 from django.core.urlresolvers import reverse, reverse_lazy
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import HttpResponse, HttpResponseRedirect
 from django.utils.decorators import method_decorator
 from django.views import View
@@ -18,12 +19,12 @@ import csv
 import json
 import os
 
-from tantalus.models import FileTransfer, FileResource, Sample, AbstractDataSet, SingleEndFastqFile, PairedEndFastqFiles, BamFile, Storage, GscWgsBamQuery, GscDlpPairedFastqQuery, BRCFastqImport, Tag
+from tantalus.models import FileTransfer, FileResource, Sample, AbstractDataSet, SingleEndFastqFile, PairedEndFastqFiles, BamFile, Storage, AzureBlobStorage, GscWgsBamQuery, GscDlpPairedFastqQuery, BRCFastqImport, Tag
 from tantalus.generictask_models import GenericTaskType, GenericTaskInstance
 from tantalus.utils import read_excel_sheets
 from tantalus.settings import STATIC_ROOT
 from misc.helpers import Render
-from .forms import SampleForm, MultipleSamplesForm, DatasetSearchForm, DatasetTagForm, FileTransferCreateForm, GscWgsBamQueryCreateForm, GscDlpPairedFastqQueryCreateForm, BRCFastqImportCreateForm
+from .forms import SampleForm, MultipleSamplesForm, DatasetSearchForm, DatasetTagForm, FileTransferCreateForm, GscWgsBamQueryCreateForm, GscDlpPairedFastqQueryCreateForm, BRCFastqImportCreateForm, AzureBlobStorageCreateForm, AzureBlobStorageUpdateCredentialsForm
 import tantalus.tasks
 
 
@@ -721,6 +722,95 @@ class DatasetTag(FormView):
         self.request.session.pop('dataset_search_results', None)
         self.request.session.pop('select_none_default', None)
         return HttpResponseRedirect(reverse('tag-detail',kwargs={'pk':tag_id.id}))
+
+
+class AzureBlobStorageListView(TemplateView):
+    """A view to list Azure storage blob containers."""
+    template_name = 'tantalus/azureblobstorage_list.html'
+
+    def get_context_data(self):
+        return {'azure_containers': AzureBlobStorage.objects.all()}
+
+
+class AzureBlobStorageCreateView(LoginRequiredMixin, TemplateView):
+    """A view to create Azure storage blob containers.
+
+    To be 100% clear, this doesn't instantiate new containers in Azure,
+    it simply lets Tantalus know about containers that already exist.
+    """
+    template_name = 'tantalus/azureblobstorage_create.html'
+
+    def get(self, request):
+        """Resolves a GET."""
+        form = AzureBlobStorageCreateForm()
+        return render(request, self.template_name, {'form': form})
+
+    def post(self, request):
+        """Resolves a POST."""
+        form = AzureBlobStorageCreateForm(request.POST)
+        if form.is_valid():
+            # Success!
+            instance = form.save()
+
+            # Log a message
+            msg = ("Successfully created Azure blob storage container %s."
+                                                % instance.name)
+            messages.success(request, msg)
+
+            return HttpResponseRedirect(reverse('azureblobstorage-list'))
+        else:
+            # Not success!
+            msg = ("Failed to create the Azure blob storage container."
+                   " Please fix the errors below.")
+            messages.error(request, msg)
+        # Return the invalid form
+        return render(request, self.template_name, {'form': form})
+
+
+class AzureBlobStorageUpdateCredentialsView(LoginRequiredMixin, TemplateView):
+    """A view to update Azure storage blob credentials."""
+    template_name = 'tantalus/azureblobstorage_credentials_update.html'
+
+    def get(self, request, pk):
+        """Resolves a GET."""
+        # Make the form
+        form = AzureBlobStorageUpdateCredentialsForm()
+
+        # Get the storage we're modifying the credentials of
+        azure_blob_storage = AzureBlobStorage.objects.get(pk=pk)
+
+        return render(request,
+                      self.template_name,
+                      {'form': form,
+                       'azure_blob_storage': azure_blob_storage},
+                     )
+
+    def post(self, request, pk):
+        """Resolves a POST."""
+        form = AzureBlobStorageUpdateCredentialsForm(request.POST)
+
+        # Get the storage we're modifying the credentials of
+        azure_blob_storage = AzureBlobStorage.objects.get(pk=pk)
+
+        if form.is_valid():
+            # Save the form
+            form.save(azure_blob_storage)
+
+            # Log a message
+            msg = "Successfully updated Azure blob storage credentials."
+            messages.success(request, msg)
+
+            return HttpResponseRedirect(reverse('azureblobstorage-list'))
+        else:
+            # Not success!
+            msg = "Failed to update credentials."
+            messages.error(request, msg)
+        # Return the invalid form
+        return render(request,
+                      self.template_name,
+                      {'form': form,
+                       'azure_blob_storage': azure_blob_storage},
+                     )
 
 
 @require_POST

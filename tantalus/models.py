@@ -501,7 +501,7 @@ class Storage(PolymorphicModel):
     history = HistoricalRecords()
 
     name = models.CharField(
-        max_length=50,
+        max_length=120,
         unique=True,
     )
 
