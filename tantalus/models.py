@@ -288,11 +288,13 @@ class FileResource(models.Model):
 
     GZIP = 'GZIP'
     BZIP2 = 'BZIP2'
+    SPEC = 'SPEC'
     UNCOMPRESSED = 'UNCOMPRESSED'
 
     compression_choices = (
         (GZIP, 'gzip'),
         (BZIP2, 'bzip2'),
+        (SPEC, 'SpEC'),
         (UNCOMPRESSED, 'uncompressed'),
     )
 
@@ -323,6 +325,7 @@ class FileResource(models.Model):
         return {
             self.GZIP: '.gz',
             self.BZIP2: '.bz2',
+            self.SPEC: '.spec',
             self.UNCOMPRESSED: '',
         }[self.compression]
 
