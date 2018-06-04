@@ -21,7 +21,7 @@ import csv
 import json
 import os
 
-from tantalus.models import FileInstance, FileTransfer, FileResource, Sample, AbstractDataSet, SingleEndFastqFile, PairedEndFastqFiles, BamFile, Storage, AzureBlobStorage, GscWgsBamQuery, GscDlpPairedFastqQuery, BRCFastqImport, Tag
+from tantalus.models import FileInstance, FileTransfer, FileResource, Sample, AbstractDataSet, SingleEndFastqFile, PairedEndFastqFiles, BamFile, Storage, AzureBlobStorage, GscWgsBamQuery, GscDlpPairedFastqQuery, BRCFastqImport, Tag, DNALibrary
 from tantalus.generictask_models import GenericTaskType, GenericTaskInstance
 from tantalus.utils import read_excel_sheets
 from tantalus.settings import STATIC_ROOT
@@ -910,7 +910,7 @@ def dataset_set_to_CSV(request):
 
 
 def get_storage_stats(storages=['all']):
-    """A helper function to get info for all storages.
+    """A helper function to get data stats for all storages.
 
     Expects a list of storages as input, and outputs a dictionary of
     integers specifying the following:
@@ -932,7 +932,7 @@ def get_storage_stats(storages=['all']):
     # Find info on number of files
     num_bams = file_instances.filter(
         file_resource__file_type='BAM').filter(
-        file_resource__compression='UNCOMPRESSED').count()
+        ~Q(file_resource__compression='SPEC')).count()
     num_specs = file_instances.filter(
         file_resource__file_type='BAM').filter(
         file_resource__compression='SPEC').count()
@@ -964,35 +964,127 @@ def get_storage_stats(storages=['all']):
            }
 
 
+def get_library_stats(filetype, storages_dict):
+    """Get info on number of files in libraries.
+
+    An assumption that this function makes is that all FASTQs come in
+    the form of paired end FASTQs (cf. single end FASTQs). This
+    assumption is currently true, and making it helps simplify the code
+    a little.
+
+    Args:
+        filetype: A string which is either 'BAM' or 'FASTQ'.
+        storages_dict: A dictionary where keys are storage names and
+            values are a list of string of storage names. This framework
+            lets us cluster several storages under a single name.
+    Returns:
+        A dictionary where the keys are the library types and the values
+        are lists containing the name, file, and size count (under
+        'name, 'file', and 'size') for each storage.
+    """
+    # Make sure the filetype is 'BAM' or 'FASTQ'
+    assert filetype in ['BAM', 'FASTQ']
+
+    # Get the list of library types that we'll get data for
+    library_types = [x[0] for x in DNALibrary.library_type_choices]
+
+    # Results dictionary
+    results = dict()
+
+    # Go through each library
+    for lib_type in library_types:
+        # Go through each storage
+        total_number = 0
+        total_size = 0
+
+        # Make a list to store results in
+        results[lib_type] = list()
+
+        for storage_name, storages in storages_dict.iteritems():
+            # Get data for this storage
+            if filetype == 'BAM':
+                # Get all the BAM files for this library type and storages
+                matching_files = BamFile.objects.filter(
+                    read_groups__dna_library__library_type=lib_type).filter(
+                    file_resources__fileinstance__storage__name__in=storages)
+            else:
+                # Get all of the paired-end FASTQs for this library type and
+                # storages
+                matching_files = PairedEndFastqFiles.objects.filter(
+                    read_groups__dna_library__library_type=lib_type).filter(
+                    file_resources__fileinstance__storage__name__in=storages)
+
+            # Compute results
+            number = matching_files.count()
+
+            if filetype == 'FASTQ':
+                # Assume pair-ended
+                number *= 2
+
+            size = matching_files.aggregate(Sum('file_resources__size'))
+            size = size['file_resources__size__sum']
+            size = 0 if size is None else int(size)
+
+            # Add to total
+            total_number += number
+            total_size += size
+
+            results[lib_type].append({
+                'name': storage_name,
+                'number': number,
+                'size': size,
+                })
+
+        # Record total
+        results[lib_type].append({
+            'name': 'all',
+            'number': total_number,
+            'size': total_size,
+            })
+
+    # Return the per-library results
+    return results
+
+
 class DataStatsView(TemplateView):
     """A view to show info on data statistics."""
     template_name = 'tantalus/data_stats.html'
 
     def get_context_data(self, **kwargs):
         """Get data info."""
-        # This is a dictionary of dictionaries where the keys are file
-        # storage location names and the values are dictionaries
-        # containing info about what kind of data is contained in the
-        # storage location
-        storage_location_counts = dict()
-
-        # Get overall data stats over all storage locations
-        storage_location_counts['all'] = get_storage_stats(['all'])
+        # Contains per-storage specific stats
+        storage_stats = dict()
 
         # Go through local storages (i.e., non-cloud)
         for local_storage_name in ['gsc', 'shahlab', 'rocks']:
-            storage_location_counts[local_storage_name] = (
+            # General stats
+            storage_stats[local_storage_name] = (
                 get_storage_stats([local_storage_name]))
 
-        # Go through cloud storages
-        storage_location_counts['azure'] = (
-            get_storage_stats([x.name for x in AzureBlobStorage.objects.all()]))
+        # Go through cloud storages.
+        azure_storages = [x.name for x in AzureBlobStorage.objects.all()]
+        storage_stats['azure'] = get_storage_stats(azure_storages)
+
+        # Get overall data stats over all storage locations
+        storage_stats['all'] = get_storage_stats(['all'])
+
+        # Contains per-library-type stats
+        storages_dict = {'gsc': ['gsc'],
+                         'shahlab': ['shahlab'],
+                         'rocks': ['rocks'],
+                         'azure': azure_storages,
+                        }
+        bam_dict = get_library_stats('BAM', storages_dict)
+        fastq_dict = get_library_stats('FASTQ', storages_dict)
 
         context = {
-            'storage_location_counts': sorted(storage_location_counts.iteritems(),
-                                              key=lambda (x, y): y['storage_size'],
-                                              reverse=True),
-        }
+            'storage_stats': sorted(storage_stats.iteritems(),
+                                            key=lambda (x, y): y['storage_size'],
+                                            reverse=True),
+            'locations_list': sorted(['all', 'azure', 'gsc', 'rocks', 'shahlab']),
+            'bam_library_stats': sorted(bam_dict.iteritems()),
+            'fastq_library_stats': sorted(fastq_dict.iteritems()),
+            }
         return context
 
 
