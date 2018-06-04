@@ -1,0 +1,38 @@
+{% extends "tantalus/base_view.html" %}
+{% load staticfiles %}
+
+{% block title %}
+    Data stats
+{% endblock %}
+
+{% block body %}
+    <div class="container" style="border:solid 1px #E0E0E0; border-radius: 3px; margin-top: 0.75em; padding-bottom: 0.5em;">
+        <h4>Data tracked:</h4>
+        <table class="table-striped" style="width:100%;">
+            <thead style="font-weight: bold">
+                <tr>
+                    <td>Storage</td>
+                    <td>BAMs</td>
+                    <td>SpECs</td>
+                    <td>BAIs</td>
+                    <td>FASTQs</td>
+                    <td>active file transfers</td>
+                    <td>total size</td>
+                </tr>
+            </thead>
+            <tbody>
+                {% for storage, counts_dict in storage_location_counts %}
+                    <tr>
+                        <td>{{ storage|upper }}</td>
+                        <td>{{ counts_dict|get_item:'num_bams'}}</td>
+                        <td>{{ counts_dict|get_item:'num_specs'}}</td>
+                        <td>{{ counts_dict|get_item:'num_bais'}}</td>
+                        <td>{{ counts_dict|get_item:'num_fastqs'}}</td>
+                        <td>{{ counts_dict|get_item:'num_active_file_transfers'}}</td>
+                        <td>{{ counts_dict|get_item:'storage_size'|filesizeformat }}</td>
+                    </tr>
+               {% endfor %}
+           </tbody>
+        </table>
+    <div>
+{% endblock %}

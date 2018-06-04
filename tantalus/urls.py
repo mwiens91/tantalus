@@ -86,5 +86,6 @@ urlpatterns = [
     url(r'^azureblobstorages/$', tantalus.views.AzureBlobStorageListView.as_view(), name='azureblobstorage-list'),
     url(r'^azureblobstorages/create$', tantalus.views.AzureBlobStorageCreateView.as_view(), name='azureblobstorage-create'),
     url(r'^azureblobstorages/updatecredentials/(?P<pk>\d+)$', tantalus.views.AzureBlobStorageUpdateCredentialsView.as_view(), name='azureblobstorage-credentials-update'),
+    url(r'^data_stats$', tantalus.views.DataStatsView.as_view(), name='data-stats'),
     url(r'^$', tantalus.views.HomeView.as_view(), name='home'),
 ]

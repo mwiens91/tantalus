@@ -10,16 +10,18 @@ from django.views.generic.list import ListView
 from django.views.generic import DetailView, FormView
 from django.views.generic.base import TemplateView
 from django.db import transaction
+from django.db.models import Sum
 from django.shortcuts import get_object_or_404, render
 from django_datatables_view.base_datatable_view import BaseDatatableView
 from django.db.models import Q
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from django.template.defaulttags import register
 
 import csv
 import json
 import os
 
-from tantalus.models import FileTransfer, FileResource, Sample, AbstractDataSet, SingleEndFastqFile, PairedEndFastqFiles, BamFile, Storage, AzureBlobStorage, GscWgsBamQuery, GscDlpPairedFastqQuery, BRCFastqImport, Tag
+from tantalus.models import FileInstance, FileTransfer, FileResource, Sample, AbstractDataSet, SingleEndFastqFile, PairedEndFastqFiles, BamFile, Storage, AzureBlobStorage, GscWgsBamQuery, GscDlpPairedFastqQuery, BRCFastqImport, Tag
 from tantalus.generictask_models import GenericTaskType, GenericTaskInstance
 from tantalus.utils import read_excel_sheets
 from tantalus.settings import STATIC_ROOT
@@ -907,16 +909,103 @@ def dataset_set_to_CSV(request):
     return response
 
 
+def get_storage_stats(storages=['all']):
+    """A helper function to get info for all storages.
+
+    Expects a list of storages as input, and outputs a dictionary of
+    integers specifying the following:
+
+    - num_bams: number of bam files in the storages
+    - num_specs: number of spec files in the storages
+    - num_bais: ...
+    - num_fastqs: ...
+    - num_active_file_transfers: ...
+    - storage_size: size in bytes of files tracked on server
+    """
+    # Build the file instance set
+    if 'all' in storages:
+        file_instances = FileInstance.objects.all()
+    else:
+        file_instances = FileInstance.objects.filter(
+            storage__name__in=storages)
+
+    # Find info on number of files
+    num_bams = file_instances.filter(
+        file_resource__file_type='BAM').filter(
+        file_resource__compression='UNCOMPRESSED').count()
+    num_specs = file_instances.filter(
+        file_resource__file_type='BAM').filter(
+        file_resource__compression='SPEC').count()
+    num_bais = file_instances.filter(
+        file_resource__file_type='BAI').count()
+    num_fastqs = file_instances.filter(
+        file_resource__file_type='FQ').count()
+
+    # Get the size of all storages
+    storage_size = file_instances.aggregate(Sum('file_resource__size'))
+    storage_size = storage_size['file_resource__size__sum']
+
+    # Build the file transfer set
+    if 'all' in storages:
+        num_active_file_transfers = FileTransfer.objects.filter(
+            running=True).count()
+    else:
+        num_active_file_transfers = FileTransfer.objects.filter(
+            running=True).filter(
+            Q(from_storage__name__in=storages)
+            | Q(to_storage__name__in=storages)).count()
+
+    return {'num_bams': num_bams,
+            'num_specs': num_specs,
+            'num_bais': num_bais,
+            'num_fastqs': num_fastqs,
+            'num_active_file_transfers': num_active_file_transfers,
+            'storage_size': storage_size,
+           }
+
+
+class DataStatsView(TemplateView):
+    """A view to show info on data statistics."""
+    template_name = 'tantalus/data_stats.html'
+
+    def get_context_data(self, **kwargs):
+        """Get data info."""
+        # This is a dictionary of dictionaries where the keys are file
+        # storage location names and the values are dictionaries
+        # containing info about what kind of data is contained in the
+        # storage location
+        storage_location_counts = dict()
+
+        # Get overall data stats over all storage locations
+        storage_location_counts['all'] = get_storage_stats(['all'])
+
+        # Go through local storages (i.e., non-cloud)
+        for local_storage_name in ['gsc', 'shahlab', 'rocks']:
+            storage_location_counts[local_storage_name] = (
+                get_storage_stats([local_storage_name]))
+
+        # Go through cloud storages
+        storage_location_counts['azure'] = (
+            get_storage_stats([x.name for x in AzureBlobStorage.objects.all()]))
+
+        context = {
+            'storage_location_counts': sorted(storage_location_counts.iteritems(),
+                                              key=lambda (x, y): y['storage_size'],
+                                              reverse=True),
+        }
+        return context
+
+
 class HomeView(TemplateView):
-    
+
     template_name = 'tantalus/index.html'
-    
+
     def get_context_data(self, **kwargs):
         context = {
             #'dataset_count': AbstractDataSet.objects.count(),
-            'dataset_single_end_fastq_count': SingleEndFastqFile.objects.count(),
-            'dataset_paired_end_fastq_count': PairedEndFastqFiles.objects.count(),
             'dataset_bam_count': BamFile.objects.count(),
+            'dataset_paired_end_fastq_count': PairedEndFastqFiles.objects.count(),
+            'dataset_single_end_fastq_count': SingleEndFastqFile.objects.count(),
             'sample_count': Sample.objects.all().count(),
             'tag_count': Tag.objects.all().count(),
             'brc_fastq_import_count': BRCFastqImport.objects.all().count(),
