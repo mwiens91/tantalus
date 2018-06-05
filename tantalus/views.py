@@ -924,26 +924,26 @@ def get_storage_stats(storages=['all']):
     """
     # Build the file instance set
     if 'all' in storages:
-        file_instances = FileInstance.objects.all()
+        file_resources = FileResource.objects.all()
     else:
-        file_instances = FileInstance.objects.filter(
-            storage__name__in=storages)
+        file_resources = FileResource.objects.filter(
+            fileinstance__storage__name__in=storages)
 
     # Find info on number of files
-    num_bams = file_instances.filter(
-        file_resource__file_type='BAM').filter(
-        ~Q(file_resource__compression='SPEC')).count()
-    num_specs = file_instances.filter(
-        file_resource__file_type='BAM').filter(
-        file_resource__compression='SPEC').count()
-    num_bais = file_instances.filter(
-        file_resource__file_type='BAI').count()
-    num_fastqs = file_instances.filter(
-        file_resource__file_type='FQ').count()
+    num_bams = file_resources.filter(
+        file_type=FileResource.BAM).filter(
+        ~Q(compression='SPEC')).count()
+    num_specs = file_resources.filter(
+        file_type=FileResource.BAM).filter(
+        compression='SPEC').count()
+    num_bais = file_resources.filter(
+        file_type=FileResource.BAI).count()
+    num_fastqs = file_resources.filter(
+        file_type=FileResource.FQ).count()
 
     # Get the size of all storages
-    storage_size = file_instances.aggregate(Sum('file_resource__size'))
-    storage_size = storage_size['file_resource__size__sum']
+    storage_size = file_resources.aggregate(Sum('size'))
+    storage_size = storage_size['size__sum']
 
     # Build the file transfer set
     if 'all' in storages:
@@ -993,54 +993,38 @@ def get_library_stats(filetype, storages_dict):
 
     # Go through each library
     for lib_type in library_types:
-        # Go through each storage
-        total_number = 0
-        total_size = 0
-
         # Make a list to store results in
         results[lib_type] = list()
 
+        # Go through each storage
         for storage_name, storages in storages_dict.iteritems():
-            # Get data for this storage
+            # Get data for this storage and library. The distinct() at
+            # the end of the queryset operations is necessary here, and
+            # I'm not exactly sure why this is so, without it, filter
+            # picks up a ton of duplicates. Very strange.
+            matching_files = FileResource.objects.filter(
+                abstractdataset__read_groups__dna_library__library_type=lib_type).filter(
+                fileinstance__storage__name__in=storages).distinct()
+
             if filetype == 'BAM':
-                # Get all the BAM files for this library type and storages
-                matching_files = BamFile.objects.filter(
-                    read_groups__dna_library__library_type=lib_type).filter(
-                    file_resources__fileinstance__storage__name__in=storages)
+                # Get all the matching BAM files
+                matching_files = matching_files.filter(file_type=FileResource.BAM)
             else:
-                # Get all of the paired-end FASTQs for this library type and
-                # storages
-                matching_files = PairedEndFastqFiles.objects.filter(
-                    read_groups__dna_library__library_type=lib_type).filter(
-                    file_resources__fileinstance__storage__name__in=storages)
+                # Get all the matching FASTQ files
+                matching_files = matching_files.filter(file_type=FileResource.FQ)
 
-            # Compute results
+            # Compute results - first the number of files- Add field skip_file_import to gscwgsbamquery
             number = matching_files.count()
-
-            if filetype == 'FASTQ':
-                # Assume pair-ended
-                number *= 2
-
-            size = matching_files.aggregate(Sum('file_resources__size'))
-            size = size['file_resources__size__sum']
+            size = matching_files.aggregate(Sum('size'))
+            size = size['size__sum']
             size = 0 if size is None else int(size)
 
-            # Add to total
-            total_number += number
-            total_size += size
 
             results[lib_type].append({
                 'name': storage_name,
                 'number': number,
                 'size': size,
                 })
-
-        # Record total
-        results[lib_type].append({
-            'name': 'all',
-            'number': total_number,
-            'size': total_size,
-            })
 
     # Return the per-library results
     return results
@@ -1069,7 +1053,8 @@ class DataStatsView(TemplateView):
         storage_stats['all'] = get_storage_stats(['all'])
 
         # Contains per-library-type stats
-        storages_dict = {'gsc': ['gsc'],
+        storages_dict = {'all': ['gsc', 'shahlab', 'rocks'] + azure_storages,
+                         'gsc': ['gsc'],
                          'shahlab': ['shahlab'],
                          'rocks': ['rocks'],
                          'azure': azure_storages,
