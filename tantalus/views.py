@@ -566,7 +566,7 @@ class TagDetail(DetailView):
 
     def get_context_data(self, object):
         tag = get_object_or_404(Tag, pk=object.id)
-        datasets = tag.abstractdataset_set.all()
+        datasets = tag.datasets.all()
         context = {
             'tag': tag,
             'datasets':datasets,
@@ -582,7 +582,7 @@ class TagDatasetDelete(View):
     def get(self, request, pk,pk_2):
         dataset = get_object_or_404(AbstractDataSet,pk=pk)
         tag = get_object_or_404(Tag,pk=pk_2)
-        tag.abstractdataset_set.remove(dataset)
+        tag.datasets.remove(dataset)
         msg = "Successfully removed datasest "
         messages.success(request, msg)
         return HttpResponseRedirect(reverse('tag-detail',kwargs={'pk':pk_2}))

@@ -340,7 +340,7 @@ class AbstractDataSet(PolymorphicModel):
 
     history = HistoricalRecords()
 
-    tags = models.ManyToManyField(Tag)
+    tags = models.ManyToManyField(Tag, related_name='datasets')
 
     read_groups = models.ManyToManyField(
         ReadGroup,
