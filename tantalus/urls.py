@@ -26,6 +26,7 @@ urlpatterns = [
     url(r'^admin/', admin.site.urls),
     url(r'^api/', include('tantalus.api.urls')),
     url(r'^account/', include('account.urls')),
+    url(r'^backend/', include('tantalus.backend.urls')),
     url(r'^generictasktypes/$', tantalus.generictask_views.GenericTaskTypeListView.as_view(), name='generictasktype-list'),
     url(r'^generictasktypes/create$', tantalus.generictask_views.GenericTaskTypeCreateView.as_view(), name='generictasktype-create'),
     url(r'^generictasktypes/(?P<pk>\d+)$', tantalus.generictask_views.GenericTaskTypeDetailView.as_view(), name='generictasktype-detail'),
