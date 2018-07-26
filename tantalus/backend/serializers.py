@@ -154,10 +154,13 @@ def get_or_create_serialize_fastq_files(data):
     return fastq_files_serializer.instance.id
 
 
-def read_models(json_data_filename):
-    with open(json_data_filename) as f:
-        json_list = JSONParser().parse(f)
+def read_models(json_list):
+    """Create model instances from a big JSON dump.
 
+    Arg:
+        json_list: A list of dictionaries containing values needed to
+            instantiate models as strings.
+    """
     with django.db.transaction.atomic():
         for dictionary in json_list:
             if dictionary['model'] == 'FileInstance':
