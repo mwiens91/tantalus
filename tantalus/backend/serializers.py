@@ -154,13 +154,10 @@ def get_or_create_serialize_fastq_files(data):
     return fastq_files_serializer.instance.id
 
 
-def read_models(json_list):
-    """Create model instances from a big JSON dump.
+def read_models(json_data_filename):
+    with open(json_data_filename) as f:
+        json_list = JSONParser().parse(f)
 
-    Arg:
-        json_list: A list of dictionaries containing values needed to
-            instantiate models as strings.
-    """
     with django.db.transaction.atomic():
         for dictionary in json_list:
             if dictionary['model'] == 'FileInstance':
@@ -179,3 +176,32 @@ def read_models(json_list):
                 raise ValueError('model type {} not supported'.format(dictionary['model']))
 
 
+def read_models_from_http_request(json_list):
+    """Create model instances from a big JSON dump.
+
+    This is a clone of the read_models function except that it gets its
+    json_list directly from an HTTP request instead of from a file.
+    Copying instead of modifying to ensure backwards compatibility.
+    Eventually this should be removed in favour of having tasks use
+    standard Tantalus API endpoints.
+
+    Arg:
+        json_list: A list of dictionaries containing values needed to
+            instantiate models as strings.
+    """
+    with django.db.transaction.atomic():
+        for dictionary in json_list:
+            if dictionary['model'] == 'FileInstance':
+                dictionary.pop('model')
+                get_or_create_serialize_file_instance(dictionary)
+
+            elif dictionary['model'] == 'BamFile':
+                dictionary.pop('model')
+                get_or_create_serialize_bam_file(dictionary)
+
+            elif dictionary['model'] == 'ReadGroup':
+                dictionary.pop('model')
+                get_or_create_serialize_read_group(dictionary)
+
+            else:
+                raise ValueError('model type {} not supported'.format(dictionary['model']))
