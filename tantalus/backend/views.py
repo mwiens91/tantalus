@@ -6,7 +6,7 @@ At some point these should be replaced by just making RESTful API calls.
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from tantalus.backend.serializers import read_models
+from tantalus.backend.serializers import read_models_from_http_request
 
 class ReadModelsView(APIView):
     """A view to consume JSON and execute the read_models function."""
@@ -22,7 +22,7 @@ class ReadModelsView(APIView):
 
         # Consume data and create model instances
         try:
-            read_models(json_list)
+            read_models_from_http_request(json_list)
         except Exception as e:
             return Response(
                 data={'Exception': str(e)},
