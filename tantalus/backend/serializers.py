@@ -60,7 +60,7 @@ def get_or_create_serialize_dna_library(data):
 class FileResourceSerializer(GetCreateModelSerializer):
     class Meta:
         model = tantalus.models.FileResource
-        fields = ('size', 'created', 'file_type', 'read_end', 'compression', 'filename')
+        fields = ('size', 'created', 'file_type', 'compression', 'filename')
 
 
 def get_or_create_serialize_file_resource(data):
