@@ -61,6 +61,19 @@ class FileResourceSerializer(GetCreateModelSerializer):
     class Meta:
         model = tantalus.models.FileResource
         fields = ('size', 'created', 'file_type', 'compression', 'filename')
+    def is_valid(self, raise_exception=False):
+        # Check to see if the FileResource already exists, checking only
+        # the filename (which is what FileResource is unique on). This
+        # is necessary to avoid IntegrityErrors.
+        try:
+            # Try getting the FileResource
+            self.instance = (
+                tantalus.models.FileResource.objects.get(
+                    filename=self.initial_data['filename']))
+
+            return True
+        except django.core.exceptions.ObjectDoesNotExist:
+            return super(FileResourceSerializer, self).is_valid(raise_exception)
 
 
 def get_or_create_serialize_file_resource(data):
